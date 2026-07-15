@@ -8,6 +8,7 @@ const addPlanForm = document.getElementById("add-plan-form");
 const cancelPlanButton = document.getElementById("cancel-plan-button");
 const roleTreeRoot = document.getElementById("role-tree");
 const deploymentBadge = document.getElementById("deployment-badge");
+const AUTH_STORAGE_KEY = "lumofy_preview_auth";
 let onboardingData = null;
 
 function statusClass(value) {
@@ -250,14 +251,7 @@ function renderDetail(detail) {
 }
 
 async function load() {
-  const response = await fetch("/api/onboarding", {
-    credentials: "same-origin"
-  });
-
-  if (response.status === 401) {
-    showAuth();
-    return;
-  }
+  const response = await fetch("/api/onboarding");
 
   onboardingData = await response.json();
 
@@ -292,12 +286,7 @@ function showApp() {
 }
 
 async function checkSession() {
-  const response = await fetch("/api/session", {
-    credentials: "same-origin"
-  });
-  const data = await response.json();
-
-  if (data.authenticated) {
+  if (window.localStorage.getItem(AUTH_STORAGE_KEY) === "true") {
     await load();
     return;
   }
@@ -310,35 +299,20 @@ loginForm.addEventListener("submit", async (event) => {
   authError.hidden = true;
 
   const formData = new FormData(loginForm);
-  const payload = {
-    username: String(formData.get("username") || ""),
-    password: String(formData.get("password") || "")
-  };
+  const username = String(formData.get("username") || "");
+  const password = String(formData.get("password") || "");
 
-  const response = await fetch("/api/login", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    credentials: "same-origin",
-    body: JSON.stringify(payload)
-  });
-
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({ error: "Login failed" }));
-    showAuth(data.error || "Login failed");
+  if (username !== "user" || password !== "user") {
+    showAuth("Invalid username or password");
     return;
   }
 
+  window.localStorage.setItem(AUTH_STORAGE_KEY, "true");
   await load();
 });
 
 logoutButton.addEventListener("click", async () => {
-  await fetch("/api/logout", {
-    method: "POST",
-    credentials: "same-origin"
-  });
-
+  window.localStorage.removeItem(AUTH_STORAGE_KEY);
   showAuth();
 });
 

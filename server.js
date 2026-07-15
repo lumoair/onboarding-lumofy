@@ -191,11 +191,6 @@ const server = http.createServer((req, res) => {
   }
 
   if (requestUrl.pathname === "/api/onboarding") {
-    if (!getSession(req)) {
-      sendUnauthorized(res);
-      return;
-    }
-
     sendJson(res, 200, {
       generatedAt: new Date().toISOString(),
       deployment: deploymentInfo,
