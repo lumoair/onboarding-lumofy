@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: onboarding-lumofy
+    runtime: node
+    plan: free
+    buildCommand: "true"
+    startCommand: "npm start"
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 20.20.2

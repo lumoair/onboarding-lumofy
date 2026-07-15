@@ -1,0 +1,253 @@
+{
+  "summaryCards": [
+    {
+      "label": "Employees Currently Onboarding",
+      "value": "14",
+      "tone": "neutral"
+    },
+    {
+      "label": "Starting This Week",
+      "value": "5",
+      "tone": "accent"
+    },
+    {
+      "label": "Not Ready for Day 1",
+      "value": "2",
+      "tone": "warn"
+    },
+    {
+      "label": "Overdue Tasks",
+      "value": "8",
+      "tone": "danger"
+    },
+    {
+      "label": "Awaiting Manager Action",
+      "value": "3",
+      "tone": "neutral"
+    },
+    {
+      "label": "Completing This Month",
+      "value": "6",
+      "tone": "accent"
+    }
+  ],
+  "plans": [
+    {
+      "id": "plan-001",
+      "employeeName": "Aisha Rahman",
+      "role": "Account Executive",
+      "department": "Sales",
+      "manager": "Rami Haddad",
+      "buddy": "Dina Saad",
+      "status": "ready_for_day_1",
+      "startDate": "2026-07-18",
+      "daysSinceJoining": -3,
+      "progress": 78,
+      "overdueTasks": 0,
+      "nextAction": "Laptop handover at 09:30",
+      "stage": "Pre-Start",
+      "startWindow": "this_week",
+      "projectedCompletionDate": "2026-09-30",
+      "highlight": "All critical setup complete"
+    },
+    {
+      "id": "plan-002",
+      "employeeName": "Omar Khaled",
+      "role": "Software Engineer",
+      "department": "Engineering",
+      "manager": "Noura Salem",
+      "buddy": "Yousef Ali",
+      "status": "delayed",
+      "startDate": "2026-07-16",
+      "daysSinceJoining": -1,
+      "progress": 54,
+      "overdueTasks": 2,
+      "nextAction": "Create GitHub and Notion access",
+      "stage": "Pre-Start",
+      "startWindow": "this_week",
+      "projectedCompletionDate": "2026-10-02",
+      "highlight": "Critical access tasks still open"
+    },
+    {
+      "id": "plan-003",
+      "employeeName": "Lina Faris",
+      "role": "People Operations Specialist",
+      "department": "People",
+      "manager": "Maya Nasser",
+      "buddy": "Huda Karim",
+      "status": "in_progress",
+      "startDate": "2026-07-08",
+      "daysSinceJoining": 7,
+      "progress": 63,
+      "overdueTasks": 1,
+      "nextAction": "Week 1 manager review due tomorrow",
+      "stage": "Week 1",
+      "startWindow": "this_month",
+      "projectedCompletionDate": "2026-10-08",
+      "highlight": "Reading and check-ins on track"
+    },
+    {
+      "id": "plan-004",
+      "employeeName": "Yara Mansour",
+      "role": "Customer Success Manager",
+      "department": "Customer Success",
+      "manager": "Fadi Qassem",
+      "buddy": "Sara Najjar",
+      "status": "awaiting_manager_confirmation",
+      "startDate": "2026-04-15",
+      "daysSinceJoining": 91,
+      "progress": 98,
+      "overdueTasks": 0,
+      "nextAction": "Manager final confirmation",
+      "stage": "Day 90",
+      "startWindow": "this_quarter",
+      "projectedCompletionDate": "2026-07-20",
+      "highlight": "Ready to close once manager confirms"
+    }
+  ],
+  "detail": {
+    "employeeName": "Aisha Rahman",
+    "role": "Account Executive",
+    "department": "Sales",
+    "manager": "Rami Haddad",
+    "buddy": "Dina Saad",
+    "hrContact": "Mariam Al Farsi",
+    "itContact": "IT Service Desk",
+    "startDate": "2026-07-18",
+    "status": "ready_for_day_1",
+    "completion": 78,
+    "overdueTasks": 0,
+    "nextActivity": "Welcome and orientation",
+    "tabs": [
+      "Overview",
+      "Tasks",
+      "Day 1",
+      "Tools and Access",
+      "Equipment",
+      "30/60/90 Goals",
+      "Check-Ins",
+      "Documents",
+      "Activity Timeline"
+    ],
+    "preStartTasks": [
+      {
+        "title": "Send welcome email",
+        "owner": "HR",
+        "dueDate": "2026-07-13",
+        "status": "Completed",
+        "required": true
+      },
+      {
+        "title": "Create Microsoft 365 account",
+        "owner": "IT",
+        "dueDate": "2026-07-14",
+        "status": "Completed",
+        "required": true
+      },
+      {
+        "title": "Add employee to Notion",
+        "owner": "IT / Manager",
+        "dueDate": "2026-07-16",
+        "status": "In Progress",
+        "required": true
+      },
+      {
+        "title": "Prepare laptop and equipment",
+        "owner": "Operations",
+        "dueDate": "2026-07-16",
+        "status": "Completed",
+        "required": true
+      }
+    ],
+    "dayOneSchedule": [
+      {
+        "time": "09:00",
+        "activity": "Welcome and orientation",
+        "owner": "Manager",
+        "location": "Sales floor"
+      },
+      {
+        "time": "09:30",
+        "activity": "Account and equipment setup",
+        "owner": "IT / Buddy",
+        "location": "Desk A-14"
+      },
+      {
+        "time": "10:30",
+        "activity": "Team introductions",
+        "owner": "Team",
+        "location": "Teams + office"
+      },
+      {
+        "time": "13:30",
+        "activity": "Role expectations and goals",
+        "owner": "Manager",
+        "location": "Focus room 2"
+      }
+    ],
+    "goals": [
+      {
+        "milestone": "30 Days",
+        "title": "Complete sales onboarding and first prospecting sequence",
+        "progress": 60,
+        "status": "In Progress"
+      },
+      {
+        "milestone": "60 Days",
+        "title": "Own weekly outbound targets with limited support",
+        "progress": 20,
+        "status": "Not Started"
+      },
+      {
+        "milestone": "90 Days",
+        "title": "Independently manage pipeline hygiene and reporting",
+        "progress": 0,
+        "status": "Not Started"
+      }
+    ],
+    "tools": [
+      {
+        "tool": "Microsoft 365",
+        "owner": "IT",
+        "status": "Completed"
+      },
+      {
+        "tool": "Teams",
+        "owner": "IT",
+        "status": "Completed"
+      },
+      {
+        "tool": "Notion",
+        "owner": "IT / Manager",
+        "status": "In Progress"
+      },
+      {
+        "tool": "Lumofy",
+        "owner": "HR",
+        "status": "Created"
+      }
+    ],
+    "contacts": [
+      {
+        "name": "Rami Haddad",
+        "role": "Direct Manager",
+        "purpose": "Priorities, expectations, and feedback"
+      },
+      {
+        "name": "Dina Saad",
+        "role": "Onboarding Buddy",
+        "purpose": "Daily questions and team culture"
+      },
+      {
+        "name": "Mariam Al Farsi",
+        "role": "HR Contact",
+        "purpose": "Policies, payroll, and support"
+      },
+      {
+        "name": "IT Service Desk",
+        "role": "IT Support",
+        "purpose": "Accounts, systems, and equipment"
+      }
+    ]
+  }
+}
