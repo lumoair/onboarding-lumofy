@@ -1,18 +1,20 @@
 :root {
-  --bg: #f2efe8;
-  --bg-strong: #e3ddd0;
-  --surface: rgba(255, 252, 247, 0.82);
-  --surface-strong: #fffaf2;
-  --line: rgba(61, 56, 47, 0.12);
-  --text: #1f2420;
-  --muted: #5d665d;
-  --accent: #0f766e;
-  --accent-soft: rgba(15, 118, 110, 0.12);
-  --warn: #c17b18;
-  --warn-soft: rgba(193, 123, 24, 0.14);
-  --danger: #b5412f;
-  --danger-soft: rgba(181, 65, 47, 0.12);
-  --shadow: 0 20px 60px rgba(48, 42, 33, 0.08);
+  --bg: #efefef;
+  --bg-strong: #dfe4f4;
+  --surface: rgba(255, 255, 255, 0.84);
+  --surface-strong: #ffffff;
+  --line: rgba(12, 12, 12, 0.1);
+  --text: #0c0c0c;
+  --muted: rgba(12, 12, 12, 0.66);
+  --accent: #215bea;
+  --accent-soft: rgba(33, 91, 234, 0.12);
+  --warn: #215bea;
+  --warn-soft: rgba(33, 91, 234, 0.12);
+  --danger: #0c0c0c;
+  --danger-soft: rgba(12, 12, 12, 0.1);
+  --shadow: 0 24px 64px rgba(12, 12, 12, 0.08);
+  --heading-font: "Source Sans 3", "Source Sans Pro", sans-serif;
+  --body-font: "IBM Plex Sans", sans-serif;
 }
 
 * {
@@ -26,11 +28,11 @@ html {
 body {
   margin: 0;
   color: var(--text);
-  font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+  font-family: var(--body-font);
   background:
-    radial-gradient(circle at top left, rgba(15, 118, 110, 0.16), transparent 28%),
-    radial-gradient(circle at bottom right, rgba(193, 123, 24, 0.2), transparent 24%),
-    linear-gradient(135deg, #f7f3ea, #ece6d8 55%, #f7f2e8);
+    radial-gradient(circle at top left, rgba(33, 91, 234, 0.12), transparent 32%),
+    radial-gradient(circle at bottom right, rgba(12, 12, 12, 0.06), transparent 22%),
+    linear-gradient(140deg, #f7f7f7, #efefef 54%, #e7ecfb);
 }
 
 .page-shell {
@@ -44,8 +46,8 @@ body {
   top: 0;
   height: 100vh;
   padding: 28px 22px;
-  background: rgba(35, 40, 34, 0.94);
-  color: #f4f1e8;
+  background: #0c0c0c;
+  color: #efefef;
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -63,8 +65,8 @@ body {
   width: 48px;
   height: 48px;
   border-radius: 14px;
-  background: linear-gradient(140deg, #f4b860, #0f766e);
-  color: #15211d;
+  background: #215bea;
+  color: #efefef;
   font-size: 1.35rem;
   font-weight: 700;
 }
@@ -72,10 +74,13 @@ body {
 .brand h1,
 .hero h2,
 .panel h3,
-.subsection h4 {
+.subsection h4,
+.metric-card strong,
+th,
+.timeline-time {
   margin: 0;
-  font-family: Georgia, "Times New Roman", serif;
-  letter-spacing: -0.03em;
+  font-family: var(--heading-font);
+  letter-spacing: -0.02em;
 }
 
 .eyebrow {
@@ -95,30 +100,31 @@ body {
 
 .nav-link {
   padding: 12px 14px;
-  color: #ebe5d8;
+  color: #efefef;
   text-decoration: none;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(239, 239, 239, 0.12);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .nav-link.active,
 .nav-link:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(33, 91, 234, 0.18);
+  border-color: rgba(33, 91, 234, 0.4);
 }
 
 .sidebar-card {
   margin-top: auto;
   padding: 18px;
   border-radius: 18px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.03));
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(33, 91, 234, 0.18), rgba(255, 255, 255, 0.04));
+  border: 1px solid rgba(239, 239, 239, 0.12);
 }
 
 .compact-list {
   margin: 0;
   padding-left: 18px;
-  color: #e1dbce;
+  color: rgba(239, 239, 239, 0.86);
   display: grid;
   gap: 10px;
 }
@@ -157,8 +163,8 @@ body {
   overflow: hidden;
   padding: 22px;
   border-radius: 22px;
-  background: linear-gradient(160deg, #17453f, #0f766e 55%, #2b8f86);
-  color: #f6faf9;
+  background: linear-gradient(160deg, #0c0c0c, #12369c 58%, #215bea);
+  color: #efefef;
 }
 
 .hero-kicker {
@@ -175,7 +181,7 @@ body {
   width: 150px;
   height: 150px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(239, 239, 239, 0.12);
   animation: drift 6s ease-in-out infinite;
 }
 
@@ -208,23 +214,22 @@ body {
   display: block;
   margin-top: 10px;
   font-size: 2rem;
-  font-family: Georgia, "Times New Roman", serif;
 }
 
 .metric-card.neutral {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(246, 241, 231, 0.9));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(239, 239, 239, 0.94));
 }
 
 .metric-card.accent {
-  background: linear-gradient(180deg, rgba(15, 118, 110, 0.14), rgba(255, 250, 242, 0.92));
+  background: linear-gradient(180deg, rgba(33, 91, 234, 0.16), rgba(255, 255, 255, 0.96));
 }
 
 .metric-card.warn {
-  background: linear-gradient(180deg, rgba(193, 123, 24, 0.16), rgba(255, 250, 242, 0.92));
+  background: linear-gradient(180deg, rgba(33, 91, 234, 0.12), rgba(255, 255, 255, 0.96));
 }
 
 .metric-card.danger {
-  background: linear-gradient(180deg, rgba(181, 65, 47, 0.16), rgba(255, 250, 242, 0.92));
+  background: linear-gradient(180deg, rgba(12, 12, 12, 0.1), rgba(255, 255, 255, 0.96));
 }
 
 .panel {
@@ -253,7 +258,7 @@ body {
   padding: 8px 12px;
   border-radius: 999px;
   font-size: 0.84rem;
-  background: rgba(32, 42, 34, 0.06);
+  background: rgba(12, 12, 12, 0.04);
   border: 1px solid var(--line);
 }
 
@@ -268,20 +273,20 @@ body {
 }
 
 .status-delayed {
-  background: var(--danger-soft);
-  color: var(--danger);
+  background: rgba(12, 12, 12, 0.08);
+  color: var(--text);
 }
 
 .status-in_progress,
 .status-awaiting_manager_confirmation,
 .status-created {
-  background: rgba(26, 79, 120, 0.1);
-  color: #1f5f86;
+  background: rgba(33, 91, 234, 0.12);
+  color: var(--accent);
 }
 
 .status-not_started {
-  background: rgba(94, 102, 93, 0.1);
-  color: #516054;
+  background: rgba(12, 12, 12, 0.06);
+  color: var(--muted);
 }
 
 .table-wrap {
@@ -330,13 +335,13 @@ tr:last-child td {
   width: 130px;
   height: 10px;
   border-radius: 999px;
-  background: rgba(32, 42, 34, 0.08);
+  background: rgba(12, 12, 12, 0.08);
   overflow: hidden;
 }
 
 .progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #0f766e, #2ea78a);
+  background: linear-gradient(90deg, #0c0c0c, #215bea);
   border-radius: inherit;
 }
 
@@ -390,12 +395,12 @@ tr:last-child td {
   gap: 14px;
   padding: 14px;
   border-radius: 18px;
-  background: rgba(255, 250, 242, 0.92);
+  background: rgba(255, 255, 255, 0.92);
   border: 1px solid var(--line);
 }
 
 .timeline-time {
-  font-weight: 700;
+  font-weight: 800;
   color: var(--accent);
 }
 
@@ -408,7 +413,7 @@ code {
   margin-top: 8px;
   padding: 7px 10px;
   border-radius: 10px;
-  background: rgba(32, 42, 34, 0.06);
+  background: rgba(33, 91, 234, 0.08);
 }
 
 @keyframes drift {
