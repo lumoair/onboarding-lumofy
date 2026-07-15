@@ -9,11 +9,14 @@ const HOST = process.env.HOST || (process.env.RENDER ? "0.0.0.0" : "127.0.0.1");
 const AUTH_COOKIE = "lumofy_session";
 const VALID_USERNAME = "user";
 const VALID_PASSWORD = "user";
+const AUTH_TOKEN = crypto
+  .createHash("sha256")
+  .update(`${VALID_USERNAME}:${VALID_PASSWORD}:lumofy-preview`)
+  .digest("hex");
 const publicDir = path.join(__dirname, "public");
 const sampleData = JSON.parse(
   fs.readFileSync(path.join(__dirname, "data", "sample-data.json"), "utf8")
 );
-const sessions = new Map();
 const deploymentInfo = {
   commit: (process.env.RENDER_GIT_COMMIT || process.env.COMMIT_SHA || "local").slice(0, 7),
   branch: process.env.RENDER_GIT_BRANCH || process.env.BRANCH || "local",
@@ -71,19 +74,21 @@ function parseCookies(req) {
 
 function getSession(req) {
   const cookies = parseCookies(req);
-  const sessionId = cookies[AUTH_COOKIE];
-  if (!sessionId) {
+  const token = cookies[AUTH_COOKIE];
+  if (token !== AUTH_TOKEN) {
     return null;
   }
 
-  return sessions.get(sessionId) || null;
+  return {
+    username: VALID_USERNAME
+  };
 }
 
-function setSessionCookie(res, sessionId) {
+function setSessionCookie(res) {
   const isSecure = process.env.RENDER ? "; Secure" : "";
   res.setHeader(
     "Set-Cookie",
-    `${AUTH_COOKIE}=${sessionId}; Path=/; HttpOnly; SameSite=Lax${isSecure}; Max-Age=86400`
+    `${AUTH_COOKIE}=${AUTH_TOKEN}; Path=/; HttpOnly; SameSite=Lax${isSecure}; Max-Age=86400`
   );
 }
 
@@ -167,13 +172,7 @@ const server = http.createServer((req, res) => {
           return;
         }
 
-        const sessionId = crypto.randomUUID();
-        sessions.set(sessionId, {
-          username,
-          createdAt: Date.now()
-        });
-
-        setSessionCookie(res, sessionId);
+        setSessionCookie(res);
         sendJson(res, 200, {
           authenticated: true,
           username
@@ -186,11 +185,6 @@ const server = http.createServer((req, res) => {
   }
 
   if (requestUrl.pathname === "/api/logout" && req.method === "POST") {
-    const cookies = parseCookies(req);
-    if (cookies[AUTH_COOKIE]) {
-      sessions.delete(cookies[AUTH_COOKIE]);
-    }
-
     clearSessionCookie(res);
     sendJson(res, 200, { authenticated: false });
     return;
