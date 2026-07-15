@@ -7,6 +7,7 @@ const addPlanButton = document.getElementById("add-plan-button");
 const addPlanForm = document.getElementById("add-plan-form");
 const cancelPlanButton = document.getElementById("cancel-plan-button");
 const roleTreeRoot = document.getElementById("role-tree");
+const deploymentBadge = document.getElementById("deployment-badge");
 let onboardingData = null;
 
 function statusClass(value) {
@@ -266,6 +267,7 @@ async function load() {
 
 function renderDashboard(data) {
   document.getElementById("generated-at").textContent = `Updated ${new Date(data.generatedAt).toLocaleString()}`;
+  deploymentBadge.textContent = `Build ${data.deployment.branch}@${data.deployment.commit}`;
 
   renderSummaryCards(data.summaryCards, data.stats);
   renderPlans(data.plans);

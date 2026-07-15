@@ -288,6 +288,18 @@ th,
   font-size: 0.72rem;
 }
 
+.deployment-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 18px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: rgba(239, 239, 239, 0.12);
+  border: 1px solid rgba(239, 239, 239, 0.18);
+  color: #efefef;
+  font-size: 0.84rem;
+}
+
 .pulse {
   position: absolute;
   top: -60px;

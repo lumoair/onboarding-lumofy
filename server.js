@@ -14,6 +14,11 @@ const sampleData = JSON.parse(
   fs.readFileSync(path.join(__dirname, "data", "sample-data.json"), "utf8")
 );
 const sessions = new Map();
+const deploymentInfo = {
+  commit: (process.env.RENDER_GIT_COMMIT || process.env.COMMIT_SHA || "local").slice(0, 7),
+  branch: process.env.RENDER_GIT_BRANCH || process.env.BRANCH || "local",
+  service: process.env.RENDER_SERVICE_NAME || "onboarding-lumofy"
+};
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -136,7 +141,10 @@ const server = http.createServer((req, res) => {
   const requestUrl = new URL(req.url, `http://${req.headers.host}`);
 
   if (requestUrl.pathname === "/api/health") {
-    sendJson(res, 200, { status: "ok" });
+    sendJson(res, 200, {
+      status: "ok",
+      deployment: deploymentInfo
+    });
     return;
   }
 
@@ -196,6 +204,7 @@ const server = http.createServer((req, res) => {
 
     sendJson(res, 200, {
       generatedAt: new Date().toISOString(),
+      deployment: deploymentInfo,
       stats: getDashboardStats(sampleData.plans),
       ...sampleData
     });
@@ -227,5 +236,7 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`Lumofy onboarding UI running on http://${HOST}:${PORT}`);
+  console.log(
+    `Lumofy onboarding UI running on http://${HOST}:${PORT} (${deploymentInfo.branch}@${deploymentInfo.commit})`
+  );
 });
