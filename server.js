@@ -1,14 +1,19 @@
 const http = require("http");
+const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 const { URL } = require("url");
 
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || (process.env.RENDER ? "0.0.0.0" : "127.0.0.1");
+const AUTH_COOKIE = "lumofy_session";
+const VALID_USERNAME = "user";
+const VALID_PASSWORD = "user";
 const publicDir = path.join(__dirname, "public");
 const sampleData = JSON.parse(
   fs.readFileSync(path.join(__dirname, "data", "sample-data.json"), "utf8")
 );
+const sessions = new Map();
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -27,6 +32,65 @@ function sendJson(res, statusCode, payload) {
     "Cache-Control": "no-store"
   });
   res.end(JSON.stringify(payload));
+}
+
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = "";
+
+    req.on("data", (chunk) => {
+      body += chunk;
+      if (body.length > 1e6) {
+        reject(new Error("Request body too large"));
+        req.destroy();
+      }
+    });
+
+    req.on("end", () => resolve(body));
+    req.on("error", reject);
+  });
+}
+
+function parseCookies(req) {
+  const header = req.headers.cookie;
+  if (!header) {
+    return {};
+  }
+
+  return header.split(";").reduce((cookies, part) => {
+    const [rawKey, ...rawValue] = part.trim().split("=");
+    cookies[rawKey] = decodeURIComponent(rawValue.join("="));
+    return cookies;
+  }, {});
+}
+
+function getSession(req) {
+  const cookies = parseCookies(req);
+  const sessionId = cookies[AUTH_COOKIE];
+  if (!sessionId) {
+    return null;
+  }
+
+  return sessions.get(sessionId) || null;
+}
+
+function setSessionCookie(res, sessionId) {
+  const isSecure = process.env.RENDER ? "; Secure" : "";
+  res.setHeader(
+    "Set-Cookie",
+    `${AUTH_COOKIE}=${sessionId}; Path=/; HttpOnly; SameSite=Lax${isSecure}; Max-Age=86400`
+  );
+}
+
+function clearSessionCookie(res) {
+  res.setHeader(
+    "Set-Cookie",
+    `${AUTH_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`
+  );
+}
+
+function sendUnauthorized(res) {
+  sendJson(res, 401, { error: "Authentication required" });
 }
 
 function serveFile(filePath, res) {
@@ -76,7 +140,60 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  if (requestUrl.pathname === "/api/session") {
+    const session = getSession(req);
+    sendJson(res, 200, {
+      authenticated: Boolean(session),
+      username: session ? session.username : null
+    });
+    return;
+  }
+
+  if (requestUrl.pathname === "/api/login" && req.method === "POST") {
+    readBody(req)
+      .then((body) => {
+        const { username, password } = JSON.parse(body || "{}");
+
+        if (username !== VALID_USERNAME || password !== VALID_PASSWORD) {
+          sendJson(res, 401, { error: "Invalid username or password" });
+          return;
+        }
+
+        const sessionId = crypto.randomUUID();
+        sessions.set(sessionId, {
+          username,
+          createdAt: Date.now()
+        });
+
+        setSessionCookie(res, sessionId);
+        sendJson(res, 200, {
+          authenticated: true,
+          username
+        });
+      })
+      .catch(() => {
+        sendJson(res, 400, { error: "Invalid request" });
+      });
+    return;
+  }
+
+  if (requestUrl.pathname === "/api/logout" && req.method === "POST") {
+    const cookies = parseCookies(req);
+    if (cookies[AUTH_COOKIE]) {
+      sessions.delete(cookies[AUTH_COOKIE]);
+    }
+
+    clearSessionCookie(res);
+    sendJson(res, 200, { authenticated: false });
+    return;
+  }
+
   if (requestUrl.pathname === "/api/onboarding") {
+    if (!getSession(req)) {
+      sendUnauthorized(res);
+      return;
+    }
+
     sendJson(res, 200, {
       generatedAt: new Date().toISOString(),
       stats: getDashboardStats(sampleData.plans),

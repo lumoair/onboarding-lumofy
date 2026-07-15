@@ -105,6 +105,72 @@
       "highlight": "Ready to close once manager confirms"
     }
   ],
+  "roleTree": [
+    {
+      "title": "Chief Executive Officer",
+      "name": "Luma Air",
+      "children": [
+        {
+          "title": "Chief People Officer",
+          "name": "Maya Nasser",
+          "children": [
+            {
+              "title": "HR Operations Lead",
+              "name": "Mariam Al Farsi",
+              "children": [
+                {
+                  "title": "People Operations Specialist",
+                  "name": "Lina Faris"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Chief Revenue Officer",
+          "name": "Rami Haddad",
+          "children": [
+            {
+              "title": "Sales Manager",
+              "name": "Dina Saad",
+              "children": [
+                {
+                  "title": "Account Executive",
+                  "name": "Aisha Rahman"
+                }
+              ]
+            },
+            {
+              "title": "Customer Success Director",
+              "name": "Fadi Qassem",
+              "children": [
+                {
+                  "title": "Customer Success Manager",
+                  "name": "Yara Mansour"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Chief Technology Officer",
+          "name": "Noura Salem",
+          "children": [
+            {
+              "title": "Engineering Manager",
+              "name": "Yousef Ali",
+              "children": [
+                {
+                  "title": "Software Engineer",
+                  "name": "Omar Khaled"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
   "detail": {
     "employeeName": "Aisha Rahman",
     "role": "Account Executive",

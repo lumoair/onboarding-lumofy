@@ -35,6 +35,120 @@ body {
     linear-gradient(140deg, #f7f7f7, #efefef 54%, #e7ecfb);
 }
 
+button,
+input {
+  font: inherit;
+}
+
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.auth-card {
+  width: min(100%, 460px);
+  padding: 32px;
+  border-radius: 28px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.auth-card h2 {
+  margin: 0;
+  font-family: var(--heading-font);
+  font-size: clamp(2rem, 5vw, 2.8rem);
+  line-height: 0.98;
+}
+
+.auth-copy,
+.auth-hint,
+.auth-error {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.auth-form {
+  display: grid;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.field span {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.field input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(12, 12, 12, 0.14);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text);
+}
+
+.field input:focus {
+  outline: 2px solid rgba(33, 91, 234, 0.24);
+  border-color: var(--accent);
+}
+
+.primary-button,
+.secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: 0;
+  cursor: pointer;
+  transition: transform 160ms ease, opacity 160ms ease, background 160ms ease;
+}
+
+.ghost-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.primary-button {
+  background: var(--accent);
+  color: #efefef;
+  font-weight: 700;
+}
+
+.secondary-button {
+  margin-top: 16px;
+  width: 100%;
+  background: rgba(239, 239, 239, 0.08);
+  color: #efefef;
+  border: 1px solid rgba(239, 239, 239, 0.16);
+}
+
+.primary-button:hover,
+.secondary-button:hover,
+.ghost-button:hover {
+  transform: translateY(-1px);
+}
+
+.auth-error {
+  color: #9c1f1f;
+  margin: 0;
+}
+
 .page-shell {
   display: grid;
   grid-template-columns: 310px 1fr;
@@ -250,6 +364,65 @@ th,
   gap: 10px;
 }
 
+.hr-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.hr-toolbar {
+  align-items: center;
+}
+
+.add-button {
+  padding-inline: 20px;
+  min-height: 46px;
+  box-shadow: 0 12px 24px rgba(33, 91, 234, 0.18);
+}
+
+.inline-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid var(--line);
+  background: rgba(33, 91, 234, 0.05);
+}
+
+.inline-form .field {
+  margin: 0;
+}
+
+.inline-form .field input,
+.inline-form .field select {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(12, 12, 12, 0.14);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text);
+}
+
+.inline-form .field input:focus,
+.inline-form .field select:focus {
+  outline: 2px solid rgba(33, 91, 234, 0.24);
+  border-color: var(--accent);
+}
+
+.field-wide {
+  grid-column: span 2;
+}
+
+.form-actions {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+}
+
 .pill,
 .status-pill {
   display: inline-flex;
@@ -362,6 +535,43 @@ tr:last-child td {
   gap: 14px;
 }
 
+.role-tree-root {
+  overflow-x: auto;
+}
+
+.role-tree-level {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.role-tree-level .role-tree-level {
+  margin-top: 14px;
+  margin-left: 28px;
+  padding-left: 22px;
+  border-left: 2px solid rgba(33, 91, 234, 0.16);
+}
+
+.role-node {
+  display: grid;
+  gap: 6px;
+  padding: 16px 18px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(33, 91, 234, 0.06), rgba(255, 255, 255, 0.96));
+}
+
+.role-title {
+  font-family: var(--heading-font);
+  font-size: 1.02rem;
+}
+
+.role-name {
+  color: var(--muted);
+}
+
 .employee-card {
   display: grid;
   gap: 14px;
@@ -452,8 +662,18 @@ code {
   .metrics,
   .dual-grid,
   .asset-grid,
-  .list-grid {
+  .list-grid,
+  .inline-form {
     grid-template-columns: 1fr;
+  }
+
+  .field-wide {
+    grid-column: auto;
+  }
+
+  .form-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .timeline-item {
@@ -462,5 +682,10 @@ code {
 
   .panel-header {
     flex-direction: column;
+  }
+
+  .hr-actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
