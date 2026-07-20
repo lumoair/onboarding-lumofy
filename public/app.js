@@ -319,14 +319,12 @@ function renderDashboard(data) {
 
 function showAuth(message = "") {
   authShell.hidden = false;
-  appShell.hidden = true;
   authError.hidden = !message;
   authError.textContent = message;
 }
 
 function showApp() {
   authShell.hidden = true;
-  appShell.hidden = false;
   authError.hidden = true;
   authError.textContent = "";
 }
