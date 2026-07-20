@@ -71,7 +71,9 @@ function derivePlansFromEmployees(employees) {
 
   return employees.map((employee, index) => {
     const department = normalizeDepartmentName(employee.department);
-    const managerName = managerMap.get(employee.fullName) || "Ahmed Faraj";
+    const managerName = employee.fullName === "Ahmed Faraj"
+      ? "Board / Founder"
+      : (managerMap.get(employee.fullName) || "Ahmed Faraj");
     const isNewHire = employee.employmentStatus === "new hire";
     const status = isNewHire ? "preparing" : statuses[index % statuses.length];
     const progress = isNewHire ? 22 : status === "completed" ? 100 : status === "awaiting_manager_confirmation" ? 94 : status === "ready_for_day_1" ? 76 : 61;
@@ -105,9 +107,17 @@ function deriveRoleTreeFromEmployees(employees) {
   const employeeMap = buildEmployeeMap(employees);
   const managerMap = getManagerMap();
   const childrenByManager = new Map();
+  const rootName = "Ahmed Faraj";
 
   employees.forEach((employee) => {
-    const manager = managerMap.get(employee.fullName) || "Ahmed Faraj";
+    const manager = employee.fullName === rootName
+      ? null
+      : (managerMap.get(employee.fullName) || rootName);
+
+    if (!manager) {
+      return;
+    }
+
     if (!childrenByManager.has(manager)) {
       childrenByManager.set(manager, []);
     }
@@ -136,7 +146,7 @@ function deriveRoleTreeFromEmployees(employees) {
   }
 
   return [
-    buildNode("Ahmed Faraj")
+    buildNode(rootName)
   ];
 }
 
