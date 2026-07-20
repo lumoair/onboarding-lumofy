@@ -7,6 +7,9 @@ const employeeRows = document.getElementById("employee-rows");
 const employeeSummaryCards = document.getElementById("employee-summary-cards");
 const departmentBreakdown = document.getElementById("department-breakdown");
 const treeSummaryCards = document.getElementById("tree-summary-cards");
+const engagementSummaryCards = document.getElementById("engagement-summary-cards");
+const leaderboardList = document.getElementById("leaderboard-list");
+const gamesList = document.getElementById("games-list");
 let onboardingData = null;
 
 function normalizeDepartmentName(value) {
@@ -340,6 +343,66 @@ function renderEmployees(employees) {
   }
 }
 
+function renderEngagement(engagement) {
+  if (!engagement) {
+    return;
+  }
+
+  if (engagementSummaryCards) {
+    const totalPlayers = (engagement.games || []).reduce((sum, game) => sum + Number(game.players || 0), 0);
+    const topElo = engagement.leaderboard && engagement.leaderboard.length ? engagement.leaderboard[0].elo : 0;
+    engagementSummaryCards.innerHTML = [
+      { label: "Games", value: (engagement.games || []).length, tone: "neutral" },
+      { label: "Participants", value: totalPlayers, tone: "accent" },
+      { label: "Top ELO", value: topElo, tone: "neutral" },
+      { label: "Leaderboard Spots", value: 3, tone: "accent" },
+      { label: "Open Access", value: "All", tone: "neutral" },
+      { label: "Mode", value: "Ranked", tone: "accent" }
+    ]
+      .map(
+        (card) => `
+          <article class="metric-card ${card.tone}">
+            <p class="eyebrow">${card.label}</p>
+            <strong>${card.value}</strong>
+          </article>
+        `
+      )
+      .join("");
+  }
+
+  if (leaderboardList) {
+    leaderboardList.innerHTML = (engagement.leaderboard || [])
+      .map(
+        (entry) => `
+          <article class="leaderboard-card">
+            <div class="pill-row">
+              <span class="leaderboard-rank">${entry.rank}</span>
+              <span class="pill">${entry.game}</span>
+              <span class="status-pill status-in_progress">ELO ${entry.elo}</span>
+            </div>
+            <strong>${entry.name}</strong>
+          </article>
+        `
+      )
+      .join("");
+  }
+
+  if (gamesList) {
+    gamesList.innerHTML = (engagement.games || [])
+      .map(
+        (game) => `
+          <article class="asset-card">
+            <strong>${game.name}</strong>
+            <p>${game.description}</p>
+            <p class="muted">${game.format}</p>
+            <p class="muted">${game.players} participants</p>
+          </article>
+        `
+      )
+      .join("");
+  }
+}
+
 function renderManagerView(plans) {
   const container = document.getElementById("manager-cards");
   if (!container) {
@@ -571,6 +634,7 @@ function renderDashboard(data) {
   renderEmployeeCard(data.detail);
   renderRoleTree(data.roleTree || []);
   renderDetail(data.detail);
+  renderEngagement(data.engagement);
 }
 
 if (addPlanButton && addPlanForm && cancelPlanButton) {

@@ -67,6 +67,33 @@
     { "fullName": "Zahid Zaidi", "jobTitle": "", "department": "Finance", "employmentStatus": "active" },
     { "fullName": "Zainab Abdulla Ali Haider Ali", "jobTitle": "Customer Success Manager", "department": "Customer Success", "employmentStatus": "active" }
   ],
+  "engagement": {
+    "games": [
+      {
+        "name": "Minesweeper",
+        "description": "Fast logic rounds during breaks.",
+        "format": "Solo speed ladder",
+        "players": 18
+      },
+      {
+        "name": "Chess",
+        "description": "Weekly head-to-head matches with ELO tracking.",
+        "format": "1v1 ranked",
+        "players": 12
+      },
+      {
+        "name": "Word Sprint",
+        "description": "Short async language and puzzle challenge.",
+        "format": "Daily async challenge",
+        "players": 21
+      }
+    ],
+    "leaderboard": [
+      { "rank": 1, "name": "Safa Alfulaij", "game": "Chess", "elo": 1684 },
+      { "rank": 2, "name": "Hussain AlSayyad", "game": "Minesweeper", "elo": 1611 },
+      { "rank": 3, "name": "Fatima Almasoud", "game": "Word Sprint", "elo": 1572 }
+    ]
+  },
   "plans": [
     {
       "id": "plan-001",

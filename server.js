@@ -21,7 +21,8 @@ const protectedHtmlRoutes = new Set([
   "/index.html",
   "/employees.html",
   "/tree.html",
-  "/plan.html"
+  "/plan.html",
+  "/engagement.html"
 ]);
 const sampleData = JSON.parse(
   fs.readFileSync(path.join(__dirname, "data", "sample-data.json"), "utf8")

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lumofy Company Role Tree</title>
+    <title>Lumofy Engagement</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -25,16 +25,16 @@
         <nav class="nav-block">
           <a class="nav-link" href="/">Dashboard</a>
           <a class="nav-link" href="/employees.html">Employees</a>
-          <a class="nav-link active" href="/tree.html">Company Role Tree</a>
+          <a class="nav-link" href="/tree.html">Company Role Tree</a>
           <a class="nav-link" href="/plan.html">Onboarding Plan</a>
-          <a class="nav-link" href="/engagement.html">Engagement</a>
+          <a class="nav-link active" href="/engagement.html">Engagement</a>
         </nav>
         <div class="sidebar-card">
-          <p class="eyebrow">View</p>
+          <p class="eyebrow">Engagement</p>
           <ul class="compact-list">
-            <li>Owner to IC reporting line</li>
-            <li>Department leadership chain</li>
-            <li>Current headcount source mapping</li>
+            <li>Games available to everyone</li>
+            <li>Top 3 leaderboard by ELO</li>
+            <li>Cross-team participation</li>
           </ul>
           <form method="post" action="/logout">
             <button class="secondary-button" type="submit">Log Out</button>
@@ -45,18 +45,17 @@
       <main class="content">
         <section class="hero">
           <div>
-            <p class="eyebrow">Company Structure</p>
-            <h2>Owner-to-individual-contributor reporting tree.</h2>
+            <p class="eyebrow">Engagement</p>
+            <h2>Shared games and leaderboard for the full company.</h2>
             <p class="hero-copy">
-              This page shows the top-down structure from the founder through leadership and individual contributors,
-              using the imported employee dataset.
+              Engagement is visible to everyone, with lightweight games like Minesweeper and Chess plus a live top-three leaderboard by ELO.
             </p>
           </div>
           <div class="hero-panel">
             <span class="pulse"></span>
-            <p class="hero-kicker">Live structure</p>
+            <p class="hero-kicker">Open to everyone</p>
             <strong id="generated-at">Loading data...</strong>
-            <p>Every node is derived from the current employee dataset and manager mapping.</p>
+            <p>Games, participation, and leaderboard standings across the company.</p>
             <div class="deployment-badge" id="deployment-badge">Build local@pending</div>
           </div>
         </section>
@@ -64,17 +63,26 @@
         <section class="panel">
           <div class="panel-header">
             <div>
-              <p class="eyebrow">Role Tree</p>
-              <h3>Company hierarchy</h3>
+              <p class="eyebrow">Leaderboard</p>
+              <h3>Top 3 by ELO</h3>
             </div>
           </div>
-          <div class="metrics" id="tree-summary-cards"></div>
-          <div class="role-tree-root" id="role-tree"></div>
+          <div class="metrics" id="engagement-summary-cards"></div>
+          <div class="stack" id="leaderboard-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Games</p>
+              <h3>Engagement activities</h3>
+            </div>
+          </div>
+          <div class="asset-grid" id="games-list"></div>
         </section>
       </main>
     </div>
 
-    __ONBOARDING_DATA_SCRIPT__
     __ONBOARDING_DATA_SCRIPT__
     <script src="/app.js?v=20260720g"></script>
   </body>
