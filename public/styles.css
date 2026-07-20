@@ -19,12 +19,13 @@
   --danger-soft: rgba(185, 28, 28, 0.08);
   --shadow-lg: 0 18px 40px rgba(17, 24, 39, 0.08);
   --shadow-md: 0 8px 22px rgba(17, 24, 39, 0.06);
-  --radius-xl: 16px;
-  --radius-lg: 14px;
-  --radius-md: 10px;
+  --radius-xl: 28px;
+  --radius-lg: 18px;
+  --radius-md: 12px;
   --radius-sm: 8px;
   --heading-font: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --body-font: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --sidebar-width: 260px;
 }
 
 * {
@@ -41,6 +42,34 @@ body {
   color: var(--text);
   font-family: var(--body-font);
   background: #f7f7f8;
+}
+
+.skip-shell {
+  pointer-events: none;
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 50;
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.skip-link {
+  pointer-events: auto;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  padding: 10px 16px;
+  font-size: 1rem;
+  text-decoration: none;
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.skip-link:focus {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 a {
@@ -96,7 +125,7 @@ p {
 
 .page-shell {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
   min-height: 100vh;
 }
 
@@ -104,7 +133,7 @@ p {
   position: sticky;
   top: 0;
   height: 100vh;
-  padding: 12px 10px;
+  padding: 10px 8px;
   background: var(--surface-dark);
   color: #ececf1;
   border-right: 1px solid rgba(255, 255, 255, 0.06);
@@ -117,7 +146,7 @@ p {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 10px 12px;
+  padding: 8px 10px 10px;
 }
 
 .brand-mark {
@@ -125,7 +154,7 @@ p {
   height: 36px;
   display: grid;
   place-items: center;
-  border-radius: 10px;
+  border-radius: 999px;
   background: var(--accent);
   color: #ffffff;
   font-size: 1.1rem;
@@ -134,7 +163,7 @@ p {
 
 .brand h1 {
   margin: 2px 0 0;
-  font-size: 1rem;
+  font-size: 0.95rem;
   line-height: 1;
 }
 
@@ -169,7 +198,7 @@ p {
 
 .sidebar-card {
   margin-top: auto;
-  padding: 14px;
+  padding: 12px;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -185,20 +214,59 @@ p {
 
 .content {
   min-width: 0;
-  padding: 16px;
+  padding: 0;
   display: grid;
-  gap: 14px;
+  gap: 0;
   background: #f7f7f8;
+}
+
+.content > * {
+  margin: 0 16px 14px;
+}
+
+.content > *:first-child {
+  margin-top: 16px;
+}
+
+.app-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  background: rgba(247, 247, 248, 0.92);
+  backdrop-filter: blur(8px);
+}
+
+.topbar-left,
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topbar-chip {
+  border: 1px solid var(--line);
+  background: #ffffff;
+  color: var(--text);
+  min-height: 36px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-weight: 600;
 }
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.9fr);
-  gap: 14px;
-  padding: 18px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
+  grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
+  gap: 16px;
+  padding: 24px;
+  border: 0;
+  border-radius: 18px;
   background: #ffffff;
+  border: 1px solid var(--line);
   box-shadow: none;
 }
 
@@ -212,12 +280,13 @@ p {
 .hero-header {
   display: grid;
   gap: 14px;
+  align-content: center;
 }
 
 .hero-header h2 {
   margin: 0;
   max-width: 16ch;
-  font-size: clamp(2rem, 3.4vw, 2.8rem);
+  font-size: clamp(2.25rem, 3.6vw, 3rem);
   line-height: 1;
 }
 
@@ -254,10 +323,10 @@ p {
 .hero-panel {
   position: relative;
   overflow: hidden;
-  padding: 16px;
-  border-radius: 12px;
+  padding: 18px;
+  border-radius: 18px;
   min-height: 100%;
-  background: #202123;
+  background: #2b2c2f;
   color: #ececf1;
 }
 
@@ -289,12 +358,12 @@ p {
 
 .pulse {
   position: absolute;
-  top: 18px;
-  right: 18px;
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: var(--accent);
+  top: 14px;
+  right: 14px;
+  width: 0;
+  height: 0;
+  border-radius: 0;
+  background: transparent;
   filter: none;
 }
 
@@ -314,8 +383,8 @@ p {
 }
 
 .panel {
-  padding: 16px;
-  border-radius: 12px;
+  padding: 18px;
+  border-radius: 16px;
 }
 
 .metrics {
@@ -326,7 +395,8 @@ p {
 
 .metric-card {
   padding: 14px;
-  border-radius: 10px;
+  border-radius: 14px;
+  background: #ffffff;
 }
 
 .metric-card strong {
@@ -426,9 +496,10 @@ p {
   justify-content: center;
   min-height: 40px;
   padding: 10px 14px;
-  border-radius: 8px;
+  border-radius: 999px;
   cursor: pointer;
   transition: background 140ms ease, border-color 140ms ease;
+  text-decoration: none;
 }
 
 .primary-button {
@@ -478,7 +549,7 @@ p {
   gap: 10px;
   margin-bottom: 14px;
   padding: 14px;
-  border-radius: 12px;
+  border-radius: 18px;
   border: 1px solid var(--line);
   background: #f7f7f8;
 }
@@ -498,7 +569,7 @@ p {
   width: 100%;
   min-height: 40px;
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: 18px;
   border: 1px solid var(--line-strong);
   background: #ffffff;
   color: var(--text);
@@ -612,7 +683,7 @@ tbody tr:hover {
 .leaderboard-card,
 .role-node {
   padding: 14px;
-  border-radius: 10px;
+  border-radius: 14px;
 }
 
 .manager-card p,
@@ -629,7 +700,7 @@ tbody tr:hover {
   display: grid;
   gap: 10px;
   padding: 16px;
-  border-radius: 10px;
+  border-radius: 18px;
   background: #f7f7f8;
   border: 1px solid var(--line);
 }
@@ -672,7 +743,7 @@ tbody tr:hover {
   grid-template-columns: 82px 1fr;
   gap: 14px;
   padding: 12px;
-  border-radius: 10px;
+  border-radius: 14px;
   border: 1px solid var(--line);
   background: #ffffff;
 }
@@ -741,7 +812,7 @@ code {
   display: inline-block;
   margin-top: 8px;
   padding: 8px 10px;
-  border-radius: 8px;
+  border-radius: 10px;
   background: #f3f4f6;
 }
 
@@ -764,7 +835,7 @@ code {
 .auth-card {
   width: min(100%, 440px);
   padding: 24px;
-  border-radius: 12px;
+  border-radius: 18px;
   border: 1px solid var(--line);
   background: #ffffff;
   box-shadow: none;
@@ -829,15 +900,11 @@ code {
   }
 
   .content {
-    padding: 18px;
+    padding: 0;
   }
 }
 
 @media (max-width: 820px) {
-  .content {
-    padding: 14px;
-  }
-
   .hero,
   .panel,
   .auth-card {
@@ -859,12 +926,27 @@ code {
 
   .hr-actions,
   .panel-header,
-  .form-actions {
+  .form-actions,
+  .app-topbar {
     flex-direction: column;
     align-items: stretch;
   }
 
   .timeline-item {
     grid-template-columns: 1fr;
+  }
+
+  .content > * {
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+  }
+
+  .content > *:first-child {
+    margin-top: 10px;
+  }
+
+  .topbar-right {
+    justify-content: stretch;
   }
 }
