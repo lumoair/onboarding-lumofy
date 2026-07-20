@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/styles.css?v=20260720a" />
   </head>
   <body>
     <div class="auth-shell" id="auth-shell">
@@ -282,6 +282,33 @@
       </main>
     </div>
 
-    <script src="/app.js"></script>
+    <script>
+      (function () {
+        const form = document.getElementById("login-form");
+        const errorNode = document.getElementById("auth-error");
+
+        if (!form || !errorNode) {
+          return;
+        }
+
+        form.addEventListener("submit", function (event) {
+          const formData = new FormData(form);
+          const username = String(formData.get("username") || "");
+          const password = String(formData.get("password") || "");
+
+          if (username === "user" && password === "user") {
+            event.preventDefault();
+            window.localStorage.setItem("lumofy_preview_auth", "true");
+            window.location.reload();
+            return;
+          }
+
+          event.preventDefault();
+          errorNode.hidden = false;
+          errorNode.textContent = "Invalid username or password";
+        });
+      })();
+    </script>
+    <script src="/app.js?v=20260720a"></script>
   </body>
   </html>

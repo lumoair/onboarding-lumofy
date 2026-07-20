@@ -113,7 +113,8 @@ function serveFile(filePath, res) {
 
     const ext = path.extname(filePath).toLowerCase();
     res.writeHead(200, {
-      "Content-Type": mimeTypes[ext] || "application/octet-stream"
+      "Content-Type": mimeTypes[ext] || "application/octet-stream",
+      "Cache-Control": "no-store, no-cache, must-revalidate"
     });
     res.end(content);
   });
