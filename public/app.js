@@ -4,6 +4,9 @@ const cancelPlanButton = document.getElementById("cancel-plan-button");
 const roleTreeRoot = document.getElementById("role-tree");
 const deploymentBadge = document.getElementById("deployment-badge");
 const employeeRows = document.getElementById("employee-rows");
+const employeeSummaryCards = document.getElementById("employee-summary-cards");
+const departmentBreakdown = document.getElementById("department-breakdown");
+const treeSummaryCards = document.getElementById("tree-summary-cards");
 let onboardingData = null;
 
 function normalizeDepartmentName(value) {
@@ -280,6 +283,51 @@ function renderEmployees(employees) {
       `
     )
     .join("");
+
+  if (employeeSummaryCards) {
+    const active = employees.filter((employee) => employee.employmentStatus === "active").length;
+    const newHires = employees.filter((employee) => employee.employmentStatus === "new hire").length;
+    const departments = new Set(employees.map((employee) => normalizeDepartmentName(employee.department))).size;
+    const managers = new Set(employees.map((employee) => managerMap.get(employee.fullName) || "Ahmed Faraj")).size;
+
+    employeeSummaryCards.innerHTML = [
+      { label: "Total Employees", value: employees.length, tone: "neutral" },
+      { label: "Active", value: active, tone: "accent" },
+      { label: "New Hires", value: newHires, tone: "warn" },
+      { label: "Departments", value: departments, tone: "neutral" },
+      { label: "Reporting Managers", value: managers, tone: "accent" },
+      { label: "Data Source", value: "XLSX", tone: "neutral" }
+    ]
+      .map(
+        (card) => `
+          <article class="metric-card ${card.tone}">
+            <p class="eyebrow">${card.label}</p>
+            <strong>${card.value}</strong>
+          </article>
+        `
+      )
+      .join("");
+  }
+
+  if (departmentBreakdown) {
+    const counts = new Map();
+    employees.forEach((employee) => {
+      const department = normalizeDepartmentName(employee.department) || "Unassigned";
+      counts.set(department, (counts.get(department) || 0) + 1);
+    });
+
+    departmentBreakdown.innerHTML = Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(
+        ([department, count]) => `
+          <article class="manager-card">
+            <strong>${department}</strong>
+            <p class="muted">${count} employees</p>
+          </article>
+        `
+      )
+      .join("");
+  }
 }
 
 function renderManagerView(plans) {
@@ -326,6 +374,31 @@ function renderEmployeeCard(detail) {
 function renderRoleTree(nodes) {
   if (!roleTreeRoot) {
     return;
+  }
+
+  if (treeSummaryCards && onboardingData) {
+    const managerMap = getManagerMap();
+    const employees = onboardingData.employees || [];
+    const topLevelLeaders = employees.filter((employee) => managerMap.get(employee.fullName) === "Mahmood Malik").length;
+    const directToOwner = employees.filter((employee) => managerMap.get(employee.fullName) === "Ahmed Faraj").length;
+
+    treeSummaryCards.innerHTML = [
+      { label: "Owner", value: "Ahmed Faraj", tone: "neutral" },
+      { label: "Direct to Owner", value: directToOwner, tone: "accent" },
+      { label: "Leadership Layer", value: topLevelLeaders, tone: "neutral" },
+      { label: "Total Headcount", value: employees.length, tone: "accent" },
+      { label: "New Hires", value: employees.filter((employee) => employee.employmentStatus === "new hire").length, tone: "warn" },
+      { label: "Departments", value: new Set(employees.map((employee) => normalizeDepartmentName(employee.department))).size, tone: "neutral" }
+    ]
+      .map(
+        (card) => `
+          <article class="metric-card ${card.tone}">
+            <p class="eyebrow">${card.label}</p>
+            <strong>${card.value}</strong>
+          </article>
+        `
+      )
+      .join("");
   }
 
   function renderNodes(items) {
@@ -485,54 +558,56 @@ function renderDashboard(data) {
   renderDetail(data.detail);
 }
 
-addPlanButton.addEventListener("click", () => {
-  addPlanForm.hidden = false;
-  addPlanButton.disabled = true;
-});
+if (addPlanButton && addPlanForm && cancelPlanButton) {
+  addPlanButton.addEventListener("click", () => {
+    addPlanForm.hidden = false;
+    addPlanButton.disabled = true;
+  });
 
-cancelPlanButton.addEventListener("click", () => {
-  addPlanForm.reset();
-  addPlanForm.hidden = true;
-  addPlanButton.disabled = false;
-});
+  cancelPlanButton.addEventListener("click", () => {
+    addPlanForm.reset();
+    addPlanForm.hidden = true;
+    addPlanButton.disabled = false;
+  });
 
-addPlanForm.addEventListener("submit", (event) => {
-  event.preventDefault();
+  addPlanForm.addEventListener("submit", (event) => {
+    event.preventDefault();
 
-  if (!onboardingData) {
-    return;
-  }
+    if (!onboardingData) {
+      return;
+    }
 
-  const formData = new FormData(addPlanForm);
-  const startDate = String(formData.get("startDate") || "");
-  const newPlan = {
-    id: `plan-${Date.now()}`,
-    employeeName: String(formData.get("employeeName") || ""),
-    department: String(formData.get("department") || ""),
-    role: String(formData.get("role") || ""),
-    manager: String(formData.get("manager") || ""),
-    buddy: "Unassigned",
-    status: String(formData.get("status") || "preparing"),
-    startDate,
-    daysSinceJoining: 0,
-    progress: Number(formData.get("progress") || 0),
-    overdueTasks: Number(formData.get("overdueTasks") || 0),
-    nextAction: String(formData.get("nextAction") || ""),
-    stage: "Pre-Start",
-    startWindow: "this_week",
-    projectedCompletionDate: startDate,
-    highlight: "Added manually from HR control queue"
-  };
+    const formData = new FormData(addPlanForm);
+    const startDate = String(formData.get("startDate") || "");
+    const newPlan = {
+      id: `plan-${Date.now()}`,
+      employeeName: String(formData.get("employeeName") || ""),
+      department: String(formData.get("department") || ""),
+      role: String(formData.get("role") || ""),
+      manager: String(formData.get("manager") || ""),
+      buddy: "Unassigned",
+      status: String(formData.get("status") || "preparing"),
+      startDate,
+      daysSinceJoining: 0,
+      progress: Number(formData.get("progress") || 0),
+      overdueTasks: Number(formData.get("overdueTasks") || 0),
+      nextAction: String(formData.get("nextAction") || ""),
+      stage: "Pre-Start",
+      startWindow: "this_week",
+      projectedCompletionDate: startDate,
+      highlight: "Added manually from HR control queue"
+    };
 
-  onboardingData.plans = [newPlan, ...onboardingData.plans];
-  onboardingData.stats = computeStats(onboardingData.plans);
-  onboardingData.generatedAt = new Date().toISOString();
+    onboardingData.plans = [newPlan, ...onboardingData.plans];
+    onboardingData.stats = computeStats(onboardingData.plans);
+    onboardingData.generatedAt = new Date().toISOString();
 
-  renderDashboard(onboardingData);
-  addPlanForm.reset();
-  addPlanForm.hidden = true;
-  addPlanButton.disabled = false;
-});
+    renderDashboard(onboardingData);
+    addPlanForm.reset();
+    addPlanForm.hidden = true;
+    addPlanButton.disabled = false;
+  });
+}
 
 load().catch((error) => {
   setText("generated-at", "Dashboard failed to load");
