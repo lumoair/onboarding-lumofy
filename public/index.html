@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/styles.css?v=20260720a" />
+    <link rel="stylesheet" href="/styles.css?v=20260720d" />
   </head>
   <body>
     <div class="auth-shell" id="auth-shell">
@@ -300,10 +300,12 @@
           const password = String(passwordNode.value || "");
 
           if (username === "user" && password === "user") {
-            window.localStorage.setItem("lumofy_preview_auth", "true");
+            window.localStorage.removeItem("lumofy_preview_auth");
+            window.sessionStorage.setItem("lumofy_preview_auth_v2", "true");
             if (authShell && appShell) {
               authShell.hidden = true;
               appShell.hidden = false;
+              appShell.classList.remove("app-locked");
             }
             return;
           }
@@ -321,6 +323,6 @@
         });
       })();
     </script>
-    <script src="/app.js?v=20260720c"></script>
+    <script src="/app.js?v=20260720d"></script>
   </body>
   </html>

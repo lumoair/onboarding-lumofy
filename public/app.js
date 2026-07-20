@@ -8,10 +8,12 @@ const addPlanForm = document.getElementById("add-plan-form");
 const cancelPlanButton = document.getElementById("cancel-plan-button");
 const roleTreeRoot = document.getElementById("role-tree");
 const deploymentBadge = document.getElementById("deployment-badge");
-const AUTH_STORAGE_KEY = "lumofy_preview_auth";
+const AUTH_STORAGE_KEY = "lumofy_preview_auth_v2";
 const usernameInput = document.getElementById("username");
 const passwordInput = document.getElementById("password");
 let onboardingData = null;
+
+window.localStorage.removeItem("lumofy_preview_auth");
 
 function setText(id, value) {
   const node = document.getElementById(id);
@@ -319,23 +321,28 @@ function renderDashboard(data) {
 
 function showAuth(message = "") {
   authShell.hidden = false;
+  if (appShell) {
+    appShell.classList.add("app-locked");
+  }
   authError.hidden = !message;
   authError.textContent = message;
 }
 
 function showApp() {
   authShell.hidden = true;
+  if (appShell) {
+    appShell.classList.remove("app-locked");
+  }
   authError.hidden = true;
   authError.textContent = "";
 }
 
 async function checkSession() {
-  if (window.localStorage.getItem(AUTH_STORAGE_KEY) === "true") {
+  if (window.sessionStorage.getItem(AUTH_STORAGE_KEY) === "true") {
     try {
       await load();
     } catch (error) {
       showApp();
-      showAuth("Dashboard data failed to load");
       console.error(error);
     }
     return;
@@ -355,14 +362,12 @@ async function runPreviewSignIn() {
     return false;
   }
 
-  window.localStorage.setItem(AUTH_STORAGE_KEY, "true");
+  window.sessionStorage.setItem(AUTH_STORAGE_KEY, "true");
   showApp();
   try {
     await load();
   } catch (error) {
     showApp();
-    authError.hidden = false;
-    authError.textContent = "Dashboard failed to load";
     console.error(error);
   }
   return true;
@@ -382,7 +387,7 @@ if (loginForm) {
 window.lumofySignIn = runPreviewSignIn;
 
 logoutButton.addEventListener("click", async () => {
-  window.localStorage.removeItem(AUTH_STORAGE_KEY);
+  window.sessionStorage.removeItem(AUTH_STORAGE_KEY);
   showAuth();
 });
 

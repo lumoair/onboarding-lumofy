@@ -159,6 +159,12 @@ input {
   min-height: 100vh;
 }
 
+.page-shell.app-locked {
+  filter: blur(6px);
+  pointer-events: none;
+  user-select: none;
+}
+
 .sidebar {
   position: sticky;
   top: 0;
