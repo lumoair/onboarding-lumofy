@@ -288,6 +288,8 @@
         const usernameNode = document.getElementById("username");
         const passwordNode = document.getElementById("password");
         const errorNode = document.getElementById("auth-error");
+        const authShell = document.getElementById("auth-shell");
+        const appShell = document.getElementById("app-shell");
 
         window.lumofySignIn = function () {
           if (!usernameNode || !passwordNode || !errorNode) {
@@ -299,13 +301,10 @@
 
           if (username === "user" && password === "user") {
             window.localStorage.setItem("lumofy_preview_auth", "true");
-            const authShell = document.getElementById("auth-shell");
-            const appShell = document.getElementById("app-shell");
             if (authShell && appShell) {
               authShell.hidden = true;
               appShell.hidden = false;
             }
-            window.location.reload();
             return;
           }
 
@@ -322,6 +321,6 @@
         });
       })();
     </script>
-    <script src="/app.js?v=20260720b"></script>
+    <script src="/app.js?v=20260720c"></script>
   </body>
   </html>

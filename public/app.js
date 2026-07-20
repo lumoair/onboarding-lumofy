@@ -13,6 +13,13 @@ const usernameInput = document.getElementById("username");
 const passwordInput = document.getElementById("password");
 let onboardingData = null;
 
+function setText(id, value) {
+  const node = document.getElementById(id);
+  if (node) {
+    node.textContent = value;
+  }
+}
+
 function statusClass(value) {
   return `status-${String(value).toLowerCase().replaceAll(" ", "_")}`;
 }
@@ -28,6 +35,9 @@ function formatDate(value) {
 
 function renderSummaryCards(cards, stats) {
   const container = document.getElementById("summary-cards");
+  if (!container) {
+    return;
+  }
   const resolved = cards.map((card) => {
     const map = {
       "Employees Currently Onboarding": stats.employeesCurrentlyOnboarding,
@@ -82,6 +92,9 @@ function computeStats(plans) {
 
 function renderPlans(plans) {
   const tbody = document.getElementById("plan-rows");
+  if (!tbody) {
+    return;
+  }
   tbody.innerHTML = plans
     .map(
       (plan) => `
@@ -112,6 +125,9 @@ function renderPlans(plans) {
 
 function renderManagerView(plans) {
   const container = document.getElementById("manager-cards");
+  if (!container) {
+    return;
+  }
   container.innerHTML = plans
     .map(
       (plan) => `
@@ -132,6 +148,9 @@ function renderManagerView(plans) {
 
 function renderEmployeeCard(detail) {
   const container = document.getElementById("employee-card");
+  if (!container) {
+    return;
+  }
   container.innerHTML = `
     <span class="status-pill ${statusClass(detail.status)}">${detail.status.replaceAll("_", " ")}</span>
     <strong>${detail.employeeName}</strong>
@@ -146,6 +165,10 @@ function renderEmployeeCard(detail) {
 }
 
 function renderRoleTree(nodes) {
+  if (!roleTreeRoot) {
+    return;
+  }
+
   function renderNodes(items) {
     return `
       <ul class="role-tree-level">
@@ -170,13 +193,18 @@ function renderRoleTree(nodes) {
 }
 
 function renderDetail(detail) {
-  document.getElementById("detail-title").textContent = `${detail.employeeName} • ${detail.role}`;
+  setText("detail-title", `${detail.employeeName} • ${detail.role}`);
 
-  document.getElementById("tab-row").innerHTML = detail.tabs
+  const tabRow = document.getElementById("tab-row");
+  if (tabRow) {
+    tabRow.innerHTML = detail.tabs
     .map((tab, index) => `<span class="pill${index === 0 ? " active" : ""}">${tab}</span>`)
     .join("");
+  }
 
-  document.getElementById("task-list").innerHTML = detail.preStartTasks
+  const taskList = document.getElementById("task-list");
+  if (taskList) {
+    taskList.innerHTML = detail.preStartTasks
     .map(
       (task) => `
         <article class="task-card">
@@ -191,8 +219,11 @@ function renderDetail(detail) {
       `
     )
     .join("");
+  }
 
-  document.getElementById("schedule-list").innerHTML = detail.dayOneSchedule
+  const scheduleList = document.getElementById("schedule-list");
+  if (scheduleList) {
+    scheduleList.innerHTML = detail.dayOneSchedule
     .map(
       (item) => `
         <div class="timeline-item">
@@ -206,8 +237,11 @@ function renderDetail(detail) {
       `
     )
     .join("");
+  }
 
-  document.getElementById("goals-list").innerHTML = detail.goals
+  const goalsList = document.getElementById("goals-list");
+  if (goalsList) {
+    goalsList.innerHTML = detail.goals
     .map(
       (goal) => `
         <article class="goal-card">
@@ -224,8 +258,11 @@ function renderDetail(detail) {
       `
     )
     .join("");
+  }
 
-  document.getElementById("tools-list").innerHTML = detail.tools
+  const toolsList = document.getElementById("tools-list");
+  if (toolsList) {
+    toolsList.innerHTML = detail.tools
     .map(
       (tool) => `
         <article class="tool-card">
@@ -238,8 +275,11 @@ function renderDetail(detail) {
       `
     )
     .join("");
+  }
 
-  document.getElementById("contacts-list").innerHTML = detail.contacts
+  const contactsList = document.getElementById("contacts-list");
+  if (contactsList) {
+    contactsList.innerHTML = detail.contacts
     .map(
       (contact) => `
         <article class="contact-card">
@@ -250,20 +290,24 @@ function renderDetail(detail) {
       `
     )
     .join("");
+  }
 }
 
 async function load() {
-  const response = await fetch("/api/onboarding");
+  showApp();
+  setText("generated-at", "Loading dashboard...");
+  const response = await fetch("/api/onboarding", { cache: "no-store" });
 
   onboardingData = await response.json();
 
   renderDashboard(onboardingData);
-  showApp();
 }
 
 function renderDashboard(data) {
-  document.getElementById("generated-at").textContent = `Updated ${new Date(data.generatedAt).toLocaleString()}`;
-  deploymentBadge.textContent = `Build ${data.deployment.branch}@${data.deployment.commit}`;
+  setText("generated-at", `Updated ${new Date(data.generatedAt).toLocaleString()}`);
+  if (deploymentBadge && data.deployment) {
+    deploymentBadge.textContent = `Build ${data.deployment.branch}@${data.deployment.commit}`;
+  }
 
   renderSummaryCards(data.summaryCards, data.stats);
   renderPlans(data.plans);
@@ -289,7 +333,13 @@ function showApp() {
 
 async function checkSession() {
   if (window.localStorage.getItem(AUTH_STORAGE_KEY) === "true") {
-    await load();
+    try {
+      await load();
+    } catch (error) {
+      showApp();
+      showAuth("Dashboard data failed to load");
+      console.error(error);
+    }
     return;
   }
 
@@ -308,7 +358,15 @@ async function runPreviewSignIn() {
   }
 
   window.localStorage.setItem(AUTH_STORAGE_KEY, "true");
-  await load();
+  showApp();
+  try {
+    await load();
+  } catch (error) {
+    showApp();
+    authError.hidden = false;
+    authError.textContent = "Dashboard failed to load";
+    console.error(error);
+  }
   return true;
 }
 
