@@ -51,6 +51,11 @@ input {
   backdrop-filter: blur(10px);
 }
 
+.auth-shell-page {
+  position: static;
+  min-height: 100vh;
+}
+
 .auth-card {
   width: min(100%, 460px);
   padding: 32px;
@@ -159,11 +164,6 @@ input {
   min-height: 100vh;
 }
 
-.page-shell.app-locked {
-  filter: blur(6px);
-  pointer-events: none;
-  user-select: none;
-}
 
 .sidebar {
   position: sticky;

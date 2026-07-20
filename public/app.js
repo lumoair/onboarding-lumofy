@@ -1,19 +1,9 @@
-const authShell = document.getElementById("auth-shell");
-const appShell = document.getElementById("app-shell");
-const loginForm = document.getElementById("login-form");
-const logoutButton = document.getElementById("logout-button");
-const authError = document.getElementById("auth-error");
 const addPlanButton = document.getElementById("add-plan-button");
 const addPlanForm = document.getElementById("add-plan-form");
 const cancelPlanButton = document.getElementById("cancel-plan-button");
 const roleTreeRoot = document.getElementById("role-tree");
 const deploymentBadge = document.getElementById("deployment-badge");
-const AUTH_STORAGE_KEY = "lumofy_preview_auth_v2";
-const usernameInput = document.getElementById("username");
-const passwordInput = document.getElementById("password");
 let onboardingData = null;
-
-window.localStorage.removeItem("lumofy_preview_auth");
 
 function setText(id, value) {
   const node = document.getElementById(id);
@@ -296,9 +286,16 @@ function renderDetail(detail) {
 }
 
 async function load() {
-  showApp();
   setText("generated-at", "Loading dashboard...");
-  const response = await fetch("/api/onboarding", { cache: "no-store" });
+  const response = await fetch("/api/onboarding", {
+    cache: "no-store",
+    credentials: "same-origin"
+  });
+
+  if (response.status === 401) {
+    window.location.href = "/login";
+    return;
+  }
 
   onboardingData = await response.json();
 
@@ -318,78 +315,6 @@ function renderDashboard(data) {
   renderRoleTree(data.roleTree || []);
   renderDetail(data.detail);
 }
-
-function showAuth(message = "") {
-  authShell.hidden = false;
-  if (appShell) {
-    appShell.classList.add("app-locked");
-  }
-  authError.hidden = !message;
-  authError.textContent = message;
-}
-
-function showApp() {
-  authShell.hidden = true;
-  if (appShell) {
-    appShell.classList.remove("app-locked");
-  }
-  authError.hidden = true;
-  authError.textContent = "";
-}
-
-async function checkSession() {
-  if (window.sessionStorage.getItem(AUTH_STORAGE_KEY) === "true") {
-    try {
-      await load();
-    } catch (error) {
-      showApp();
-      console.error(error);
-    }
-    return;
-  }
-
-  showAuth();
-}
-
-async function runPreviewSignIn() {
-  authError.hidden = true;
-
-  const username = String(usernameInput ? usernameInput.value : "");
-  const password = String(passwordInput ? passwordInput.value : "");
-
-  if (username !== "user" || password !== "user") {
-    showAuth("Invalid username or password");
-    return false;
-  }
-
-  window.sessionStorage.setItem(AUTH_STORAGE_KEY, "true");
-  showApp();
-  try {
-    await load();
-  } catch (error) {
-    showApp();
-    console.error(error);
-  }
-  return true;
-}
-
-if (loginForm) {
-  loginForm.addEventListener("keydown", async (event) => {
-    if (event.key !== "Enter") {
-      return;
-    }
-
-    event.preventDefault();
-    await runPreviewSignIn();
-  });
-}
-
-window.lumofySignIn = runPreviewSignIn;
-
-logoutButton.addEventListener("click", async () => {
-  window.sessionStorage.removeItem(AUTH_STORAGE_KEY);
-  showAuth();
-});
 
 addPlanButton.addEventListener("click", () => {
   addPlanForm.hidden = false;
@@ -440,7 +365,7 @@ addPlanForm.addEventListener("submit", (event) => {
   addPlanButton.disabled = false;
 });
 
-checkSession().catch((error) => {
-  showAuth("Unable to verify session");
+load().catch((error) => {
+  setText("generated-at", "Dashboard failed to load");
   console.error(error);
 });

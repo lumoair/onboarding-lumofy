@@ -13,36 +13,6 @@
     <link rel="stylesheet" href="/styles.css?v=20260720d" />
   </head>
   <body>
-    <div class="auth-shell" id="auth-shell">
-      <section class="auth-card">
-        <p class="eyebrow">Lumofy Access</p>
-        <h2>Sign in to the onboarding control centre</h2>
-        <p class="auth-copy">
-          This prototype is a restricted preview of Lumofy’s onboarding control centre for HR, managers, IT, and support owners.
-        </p>
-        <div id="login-form" class="auth-form">
-          <label class="field">
-            <span>Username</span>
-            <input id="username" name="username" type="text" autocomplete="username" value="user" required />
-          </label>
-          <label class="field">
-            <span>Password</span>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autocomplete="current-password"
-              value="user"
-              required
-            />
-          </label>
-          <button class="primary-button" id="sign-in-button" type="button" onclick="window.lumofySignIn && window.lumofySignIn()">Sign In</button>
-          <p class="auth-hint">Temporary credentials: <strong>user</strong> / <strong>user</strong></p>
-          <p class="auth-error" id="auth-error" hidden></p>
-        </div>
-      </section>
-    </div>
-
     <div class="page-shell" id="app-shell">
       <aside class="sidebar">
         <div class="brand">
@@ -69,7 +39,9 @@
             <li>Notifications and audit trail</li>
             <li>Manager and employee views</li>
           </ul>
-          <button class="secondary-button" id="logout-button" type="button">Log Out</button>
+          <form method="post" action="/logout">
+            <button class="secondary-button" type="submit">Log Out</button>
+          </form>
         </div>
       </aside>
 
@@ -282,47 +254,6 @@
       </main>
     </div>
 
-    <script>
-      (function () {
-        const button = document.getElementById("sign-in-button");
-        const usernameNode = document.getElementById("username");
-        const passwordNode = document.getElementById("password");
-        const errorNode = document.getElementById("auth-error");
-        const authShell = document.getElementById("auth-shell");
-        const appShell = document.getElementById("app-shell");
-
-        window.lumofySignIn = function () {
-          if (!usernameNode || !passwordNode || !errorNode) {
-            return;
-          }
-
-          const username = String(usernameNode.value || "");
-          const password = String(passwordNode.value || "");
-
-          if (username === "user" && password === "user") {
-            window.localStorage.removeItem("lumofy_preview_auth");
-            window.sessionStorage.setItem("lumofy_preview_auth_v2", "true");
-            if (authShell && appShell) {
-              authShell.hidden = true;
-              appShell.hidden = false;
-              appShell.classList.remove("app-locked");
-            }
-            return;
-          }
-
-          errorNode.hidden = false;
-          errorNode.textContent = "Invalid username or password";
-        };
-
-        if (!button) {
-          return;
-        }
-
-        button.addEventListener("click", function () {
-          window.lumofySignIn();
-        });
-      })();
-    </script>
-    <script src="/app.js?v=20260720d"></script>
+    <script src="/app.js?v=20260720e"></script>
   </body>
   </html>

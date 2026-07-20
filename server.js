@@ -14,6 +14,8 @@ const AUTH_TOKEN = crypto
   .update(`${VALID_USERNAME}:${VALID_PASSWORD}:lumofy-preview`)
   .digest("hex");
 const publicDir = path.join(__dirname, "public");
+const appHtmlPath = path.join(publicDir, "index.html");
+const loginHtmlPath = path.join(publicDir, "login.html");
 const sampleData = JSON.parse(
   fs.readFileSync(path.join(__dirname, "data", "sample-data.json"), "utf8")
 );
@@ -59,6 +61,14 @@ function readBody(req) {
   });
 }
 
+function parseFormBody(body) {
+  const params = new URLSearchParams(body);
+  return {
+    username: params.get("username") || "",
+    password: params.get("password") || ""
+  };
+}
+
 function parseCookies(req) {
   const header = req.headers.cookie;
   if (!header) {
@@ -100,7 +110,8 @@ function clearSessionCookie(res) {
 }
 
 function sendUnauthorized(res) {
-  sendJson(res, 401, { error: "Authentication required" });
+  res.writeHead(303, { Location: "/login" });
+  res.end();
 }
 
 function serveFile(filePath, res) {
@@ -163,41 +174,62 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  if (requestUrl.pathname === "/api/login" && req.method === "POST") {
+  if (requestUrl.pathname === "/login" && req.method === "GET") {
+    serveFile(loginHtmlPath, res);
+    return;
+  }
+
+  if (requestUrl.pathname === "/login" && req.method === "POST") {
     readBody(req)
       .then((body) => {
-        const { username, password } = JSON.parse(body || "{}");
+        const { username, password } = parseFormBody(body || "");
 
         if (username !== VALID_USERNAME || password !== VALID_PASSWORD) {
-          sendJson(res, 401, { error: "Invalid username or password" });
+          res.writeHead(303, { Location: "/login?error=1" });
+          res.end();
           return;
         }
 
         setSessionCookie(res);
-        sendJson(res, 200, {
-          authenticated: true,
-          username
-        });
+        res.writeHead(303, { Location: "/" });
+        res.end();
       })
       .catch(() => {
-        sendJson(res, 400, { error: "Invalid request" });
+        res.writeHead(303, { Location: "/login?error=1" });
+        res.end();
       });
     return;
   }
 
-  if (requestUrl.pathname === "/api/logout" && req.method === "POST") {
+  if (requestUrl.pathname === "/logout" && req.method === "POST") {
     clearSessionCookie(res);
-    sendJson(res, 200, { authenticated: false });
+    res.writeHead(303, { Location: "/login" });
+    res.end();
     return;
   }
 
   if (requestUrl.pathname === "/api/onboarding") {
+    if (!getSession(req)) {
+      sendJson(res, 401, { error: "Authentication required" });
+      return;
+    }
+
     sendJson(res, 200, {
       generatedAt: new Date().toISOString(),
       deployment: deploymentInfo,
       stats: getDashboardStats(sampleData.plans),
       ...sampleData
     });
+    return;
+  }
+
+  if (requestUrl.pathname === "/") {
+    if (!getSession(req)) {
+      serveFile(loginHtmlPath, res);
+      return;
+    }
+
+    serveFile(appHtmlPath, res);
     return;
   }
 
