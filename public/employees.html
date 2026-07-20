@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lumofy Employees</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css?v=20260720f" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">L</div>
+          <div>
+            <p class="eyebrow">Lumofy</p>
+            <h1>Onboarding Control Centre</h1>
+          </div>
+        </div>
+        <nav class="nav-block">
+          <a class="nav-link" href="/">Dashboard</a>
+          <a class="nav-link active" href="/employees.html">Employees</a>
+          <a class="nav-link" href="/tree.html">Company Role Tree</a>
+          <a class="nav-link" href="/plan.html">Onboarding Plan</a>
+        </nav>
+        <div class="sidebar-card">
+          <p class="eyebrow">Source</p>
+          <ul class="compact-list">
+            <li>Imported from headcount report</li>
+            <li>Employee names and job titles</li>
+            <li>Department and status</li>
+          </ul>
+          <form method="post" action="/logout">
+            <button class="secondary-button" type="submit">Log Out</button>
+          </form>
+        </div>
+      </aside>
+
+      <main class="content">
+        <section class="hero">
+          <div>
+            <p class="eyebrow">Employees</p>
+            <h2>Imported employee directory for onboarding control.</h2>
+            <p class="hero-copy">
+              This page shows the employee list imported from the latest headcount spreadsheet and used by the control centre.
+            </p>
+          </div>
+          <div class="hero-panel">
+            <span class="pulse"></span>
+            <p class="hero-kicker">Employee source</p>
+            <strong id="generated-at">Loading data...</strong>
+            <p>Headcount-backed employee directory feeding queue, managers, and tree.</p>
+            <div class="deployment-badge" id="deployment-badge">Build local@pending</div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Employee Directory</p>
+              <h3>Imported employees</h3>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Employee</th>
+                  <th>Job Title</th>
+                  <th>Department</th>
+                  <th>Status</th>
+                  <th>Manager</th>
+                </tr>
+              </thead>
+              <tbody id="employee-rows"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/app.js?v=20260720f"></script>
+  </body>
+  </html>

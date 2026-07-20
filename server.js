@@ -16,6 +16,13 @@ const AUTH_TOKEN = crypto
 const publicDir = path.join(__dirname, "public");
 const appHtmlPath = path.join(publicDir, "index.html");
 const loginHtmlPath = path.join(publicDir, "login.html");
+const protectedHtmlRoutes = new Set([
+  "/",
+  "/index.html",
+  "/employees.html",
+  "/tree.html",
+  "/plan.html"
+]);
 const sampleData = JSON.parse(
   fs.readFileSync(path.join(__dirname, "data", "sample-data.json"), "utf8")
 );
@@ -235,6 +242,11 @@ const server = http.createServer((req, res) => {
 
   let filePath = path.join(publicDir, requestUrl.pathname === "/" ? "index.html" : requestUrl.pathname);
   filePath = path.normalize(filePath);
+
+  if (protectedHtmlRoutes.has(requestUrl.pathname) && !getSession(req)) {
+    serveFile(loginHtmlPath, res);
+    return;
+  }
 
   if (!filePath.startsWith(publicDir)) {
     res.writeHead(403, { "Content-Type": "text/plain; charset=utf-8" });

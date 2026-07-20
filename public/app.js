@@ -3,7 +3,153 @@ const addPlanForm = document.getElementById("add-plan-form");
 const cancelPlanButton = document.getElementById("cancel-plan-button");
 const roleTreeRoot = document.getElementById("role-tree");
 const deploymentBadge = document.getElementById("deployment-badge");
+const employeeRows = document.getElementById("employee-rows");
 let onboardingData = null;
+
+function normalizeDepartmentName(value) {
+  return String(value || "").trim();
+}
+
+function buildEmployeeMap(employees) {
+  return new Map(employees.map((employee) => [employee.fullName, employee]));
+}
+
+function getManagerMap() {
+  return new Map([
+    ["Mahmood Malik", "Ahmed Faraj"],
+    ["Hasan Baqer Alhashimi", "Mahmood Malik"],
+    ["Hussain AlSayyad", "Mahmood Malik"],
+    ["Safa Alfulaij", "Mahmood Malik"],
+    ["Shehab Mohamed ElHadi", "Mahmood Malik"],
+    ["Reem Sharar", "Mahmood Malik"],
+    ["Suzan Alkhriesat", "Mahmood Malik"],
+    ["Nouha Esmail", "Mahmood Malik"],
+    ["Mahmoud Elreweny", "Mahmood Malik"],
+    ["Sayed Jehad Saeed Hasan", "Mahmood Malik"],
+    ["Qasim AlShakhoori", "Mahmoud Elreweny"],
+
+    ["Fatima Almasoud", "Hussain AlSayyad"],
+    ["Rania Belal Mohammad Qasim", "Sara Mashrour"],
+    ["Sara Mashrour", "Hussain AlSayyad"],
+
+    ["Abdulrahman Mohamed AlTayeb", "Safa Alfulaij"],
+    ["Adel El Nabarawy", "Safa Alfulaij"],
+    ["Ahmad Hisham Yousif ElSayed", "Safa Alfulaij"],
+    ["Ahmed Ibrahim", "Safa Alfulaij"],
+    ["Ali Husain", "Safa Alfulaij"],
+    ["Assma Tawfik Ali Ben Mussa", "Safa Alfulaij"],
+    ["Mosses Oderinde", "Safa Alfulaij"],
+
+    ["Ahmed Abdelrahem elsagher", "Qasim AlShakhoori"],
+    ["Mohamed AbdulHadi Isa Shamlooh", "Qasim AlShakhoori"],
+
+    ["Zainab Abdulla Ali Haider Ali", "Ali Maki Isa Ahmed Abbas"],
+    ["Ali Maki Isa Ahmed Abbas", "Mahmoud Elreweny"],
+
+    ["Abdelrahman tarek", "Shehab Mohamed ElHadi"],
+    ["Mohamed Ahmed Mohamed Abel Wahab", "Shehab Mohamed ElHadi"],
+
+    ["Sayed Hussain Asaad Ali Almukhtar", "Reem Sharar"],
+    ["Tasneem ElGhareeb", "Reem Sharar"],
+
+    ["Mustafa Mahmood Asghar AbdulWahab", "Suzan Alkhriesat"],
+    ["Zahid Zaidi", "Suzan Alkhriesat"],
+
+    ["Eman Farag Ktob", "Nouha Esmail"],
+    ["Mary Ashraf", "Nouha Esmail"],
+
+    ["Sayed Jehad Saeed Hasan", "Mahmood Malik"]
+  ]);
+}
+
+function derivePlansFromEmployees(employees) {
+  const managerMap = getManagerMap();
+  const statuses = ["completed", "in_progress", "awaiting_manager_confirmation", "ready_for_day_1"];
+
+  return employees.map((employee, index) => {
+    const department = normalizeDepartmentName(employee.department);
+    const managerName = managerMap.get(employee.fullName) || "Ahmed Faraj";
+    const isNewHire = employee.employmentStatus === "new hire";
+    const status = isNewHire ? "preparing" : statuses[index % statuses.length];
+    const progress = isNewHire ? 22 : status === "completed" ? 100 : status === "awaiting_manager_confirmation" ? 94 : status === "ready_for_day_1" ? 76 : 61;
+    const overdueTasks = isNewHire ? 1 : status === "in_progress" ? 1 : 0;
+    const startDate = isNewHire ? "2026-07-22" : `2026-0${(index % 4) + 4}-${String((index % 20) + 1).padStart(2, "0")}`;
+    const nextAction = isNewHire ? "Finish access, equipment, and buddy handoff" : status === "awaiting_manager_confirmation" ? "Manager completion confirmation" : status === "ready_for_day_1" ? "Confirm Day 1 schedule" : status === "in_progress" ? "Complete milestone check-in" : "Onboarding archived";
+    const stage = isNewHire ? "Pre-Start" : status === "in_progress" ? "Week 1" : status === "awaiting_manager_confirmation" ? "Day 90" : status === "ready_for_day_1" ? "Pre-Start" : "Completed";
+
+    return {
+      id: `plan-${String(index + 1).padStart(3, "0")}`,
+      employeeName: employee.fullName,
+      role: employee.jobTitle || "Unassigned Role",
+      department,
+      manager: managerName,
+      buddy: "Assigned by HR",
+      status,
+      startDate,
+      daysSinceJoining: 0,
+      progress,
+      overdueTasks,
+      nextAction,
+      stage,
+      startWindow: isNewHire ? "this_week" : "this_month",
+      projectedCompletionDate: isNewHire ? "2026-10-20" : "2026-07-30",
+      highlight: isNewHire ? "Imported as a new hire from headcount report" : "Imported from headcount report"
+    };
+  });
+}
+
+function deriveRoleTreeFromEmployees(employees) {
+  const employeeMap = buildEmployeeMap(employees);
+  const managerMap = getManagerMap();
+  const childrenByManager = new Map();
+
+  employees.forEach((employee) => {
+    const manager = managerMap.get(employee.fullName) || "Ahmed Faraj";
+    if (!childrenByManager.has(manager)) {
+      childrenByManager.set(manager, []);
+    }
+    childrenByManager.get(manager).push(employee.fullName);
+  });
+
+  function buildNode(fullName) {
+    const employee = employeeMap.get(fullName);
+    const directReports = (childrenByManager.get(fullName) || [])
+      .sort((a, b) => a.localeCompare(b))
+      .map((reportName) => buildNode(reportName));
+
+    if (!employee) {
+      return {
+        title: "Founder & CEO",
+        name: fullName,
+        children: directReports
+      };
+    }
+
+    return {
+      title: employee.jobTitle || normalizeDepartmentName(employee.department) || "Team Member",
+      name: employee.fullName,
+      children: directReports
+    };
+  }
+
+  return [
+    buildNode("Ahmed Faraj")
+  ];
+}
+
+function hydrateData(data) {
+  if (!Array.isArray(data.employees) || data.employees.length === 0) {
+    return data;
+  }
+
+  const plans = derivePlansFromEmployees(data.employees);
+  return {
+    ...data,
+    plans,
+    roleTree: deriveRoleTreeFromEmployees(data.employees),
+    stats: computeStats(plans)
+  };
+}
 
 function setText(id, value) {
   const node = document.getElementById(id);
@@ -109,6 +255,27 @@ function renderPlans(plans) {
           <td>${plan.overdueTasks}</td>
           <td><span class="status-pill ${statusClass(plan.status)}">${plan.status.replaceAll("_", " ")}</span></td>
           <td>${plan.nextAction}</td>
+        </tr>
+      `
+    )
+    .join("");
+}
+
+function renderEmployees(employees) {
+  if (!employeeRows) {
+    return;
+  }
+
+  const managerMap = getManagerMap();
+  employeeRows.innerHTML = employees
+    .map(
+      (employee) => `
+        <tr>
+          <td><strong>${employee.fullName}</strong></td>
+          <td>${employee.jobTitle || "Unassigned Role"}</td>
+          <td>${normalizeDepartmentName(employee.department)}</td>
+          <td>${employee.employmentStatus}</td>
+          <td>${managerMap.get(employee.fullName) || "Ahmed Faraj"}</td>
         </tr>
       `
     )
@@ -298,6 +465,7 @@ async function load() {
   }
 
   onboardingData = await response.json();
+  onboardingData = hydrateData(onboardingData);
 
   renderDashboard(onboardingData);
 }
@@ -310,6 +478,7 @@ function renderDashboard(data) {
 
   renderSummaryCards(data.summaryCards, data.stats);
   renderPlans(data.plans);
+  renderEmployees(data.employees || []);
   renderManagerView(data.plans);
   renderEmployeeCard(data.detail);
   renderRoleTree(data.roleTree || []);

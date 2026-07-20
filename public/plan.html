@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lumofy Onboarding Plan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css?v=20260720f" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">L</div>
+          <div>
+            <p class="eyebrow">Lumofy</p>
+            <h1>Onboarding Control Centre</h1>
+          </div>
+        </div>
+        <nav class="nav-block">
+          <a class="nav-link" href="/">Dashboard</a>
+          <a class="nav-link" href="/employees.html">Employees</a>
+          <a class="nav-link" href="/tree.html">Company Role Tree</a>
+          <a class="nav-link active" href="/plan.html">Onboarding Plan</a>
+        </nav>
+        <div class="sidebar-card">
+          <p class="eyebrow">Plan View</p>
+          <ul class="compact-list">
+            <li>Pre-start and Day 1</li>
+            <li>30/60/90 goals</li>
+            <li>Tools and contacts</li>
+          </ul>
+          <form method="post" action="/logout">
+            <button class="secondary-button" type="submit">Log Out</button>
+          </form>
+        </div>
+      </aside>
+
+      <main class="content">
+        <section class="hero">
+          <div>
+            <p class="eyebrow">Plan Detail</p>
+            <h2>Single onboarding plan page with milestones, access, and contacts.</h2>
+            <p class="hero-copy">
+              This page isolates the selected onboarding plan so the dashboard stays operational and the plan stays focused.
+            </p>
+          </div>
+          <div class="hero-panel">
+            <span class="pulse"></span>
+            <p class="hero-kicker">Selected plan</p>
+            <strong id="generated-at">Loading data...</strong>
+            <p>Plan detail, schedule, goals, tools, and contact ownership.</p>
+            <div class="deployment-badge" id="deployment-badge">Build local@pending</div>
+          </div>
+        </section>
+
+        <section class="detail-grid">
+          <article class="panel detail-wide">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Plan Detail</p>
+                <h3 id="detail-title">Loading plan detail</h3>
+              </div>
+              <div class="pill-row" id="tab-row"></div>
+            </div>
+
+            <div class="subsection">
+              <h4>Pre-start checklist</h4>
+              <div class="list-grid" id="task-list"></div>
+            </div>
+
+            <div class="subsection">
+              <h4>Day 1 schedule</h4>
+              <div class="timeline" id="schedule-list"></div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="subsection">
+              <p class="eyebrow">Goals</p>
+              <h3>30/60/90-Day plan</h3>
+              <div class="stack" id="goals-list"></div>
+            </div>
+            <div class="subsection">
+              <p class="eyebrow">Tools and Access</p>
+              <h3>Provisioning status</h3>
+              <div class="stack" id="tools-list"></div>
+            </div>
+            <div class="subsection">
+              <p class="eyebrow">Key Contacts</p>
+              <h3>Who the employee calls</h3>
+              <div class="stack" id="contacts-list"></div>
+            </div>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script src="/app.js?v=20260720f"></script>
+  </body>
+  </html>

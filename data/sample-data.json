@@ -31,140 +31,290 @@
       "tone": "accent"
     }
   ],
+  "employees": [
+    { "fullName": "Abdelrahman tarek", "jobTitle": "QC Engineer", "department": "Product", "employmentStatus": "active" },
+    { "fullName": "Abdulrahman Mohamed AlTayeb", "jobTitle": "Backend Developer", "department": "Engineering", "employmentStatus": "active" },
+    { "fullName": "Adel El Nabarawy", "jobTitle": "Senior AI Developer", "department": "Engineering", "employmentStatus": "active" },
+    { "fullName": "Ahmad Hisham Yousif ElSayed", "jobTitle": "Principle Engineer", "department": "Engineering", "employmentStatus": "active" },
+    { "fullName": "Ahmed Abdelrahem elsagher", "jobTitle": "Support and Implementation Officer", "department": "Support and Implementation", "employmentStatus": "new hire" },
+    { "fullName": "Ahmed Faraj", "jobTitle": "Founder & CEO", "department": "Management", "employmentStatus": "active" },
+    { "fullName": "Ahmed Ibrahim", "jobTitle": "Principle Engineer", "department": "Engineering", "employmentStatus": "active" },
+    { "fullName": "Ali Husain", "jobTitle": "Backend Developer", "department": "Engineering", "employmentStatus": "active" },
+    { "fullName": "Ali Maki Isa Ahmed Abbas", "jobTitle": "Customer Success Manager", "department": "Customer Success", "employmentStatus": "active" },
+    { "fullName": "Assma Tawfik Ali Ben Mussa", "jobTitle": "Frontend Developer", "department": "Engineering", "employmentStatus": "active" },
+    { "fullName": "Eman Farag Ktob", "jobTitle": "Senior eLearning Experince Design", "department": "Professional Services", "employmentStatus": "active" },
+    { "fullName": "Fatima Almasoud", "jobTitle": "Partnership Success Manager", "department": "Sales", "employmentStatus": "active" },
+    { "fullName": "Hasan Baqer Alhashimi", "jobTitle": "Employee Engagement & HR Ops Lead", "department": "People & Culture", "employmentStatus": "active" },
+    { "fullName": "Hussain AlSayyad", "jobTitle": "Acting Sales Director", "department": "Sales", "employmentStatus": "active" },
+    { "fullName": "Mahmood Malik", "jobTitle": "Cofounder & COO", "department": "Management", "employmentStatus": "active" },
+    { "fullName": "Mahmoud Elreweny", "jobTitle": "Customer Success & Professional Service Director", "department": "Professionsal Services RevOps and Automation", "employmentStatus": "active" },
+    { "fullName": "Mary Ashraf", "jobTitle": "Senior ELearning Developer", "department": "Professional Services", "employmentStatus": "active" },
+    { "fullName": "Mohamed AbdulHadi Isa Shamlooh", "jobTitle": "Support and Implementation Officer", "department": "Support and Implementation", "employmentStatus": "active" },
+    { "fullName": "Mohamed Ahmed Mohamed Abel Wahab", "jobTitle": "Mid- Product Designer", "department": "Product", "employmentStatus": "active" },
+    { "fullName": "Mosses Oderinde", "jobTitle": "Frontend Developer", "department": "Engineering", "employmentStatus": "active" },
+    { "fullName": "Mustafa Mahmood Asghar AbdulWahab", "jobTitle": "Finance & Admin Officer", "department": "Finance", "employmentStatus": "active" },
+    { "fullName": "Nouha Esmail", "jobTitle": "E-Learning Project Manager", "department": "Professional Services", "employmentStatus": "active" },
+    { "fullName": "Qasim AlShakhoori", "jobTitle": "Senior Support & Implementation Officer", "department": "Support and Implementation", "employmentStatus": "active" },
+    { "fullName": "Rania Belal Mohammad Qasim", "jobTitle": "Senior Business Development Representative", "department": "Sales", "employmentStatus": "active" },
+    { "fullName": "Reem Sharar", "jobTitle": "Marketing Manager", "department": "Marketing", "employmentStatus": "active" },
+    { "fullName": "Safa Alfulaij", "jobTitle": "Tech Lead", "department": "Engineering", "employmentStatus": "active" },
+    { "fullName": "Sara Mashrour", "jobTitle": "Acting BDR Lead", "department": "Sales", "employmentStatus": "active" },
+    { "fullName": "Sayed Hussain Asaad Ali Almukhtar", "jobTitle": "Content Marketing Specialist", "department": "Marketing", "employmentStatus": "active" },
+    { "fullName": "Sayed Jehad Saeed Hasan", "jobTitle": "Business Automation Specialist", "department": "Automation", "employmentStatus": "active" },
+    { "fullName": "Shehab Mohamed ElHadi", "jobTitle": "Senior Product Manager", "department": "Product", "employmentStatus": "active" },
+    { "fullName": "Suzan Alkhriesat", "jobTitle": "Senior Finance Manager", "department": "Finance", "employmentStatus": "active" },
+    { "fullName": "Tasneem ElGhareeb", "jobTitle": "Senior Brand Designer", "department": "Marketing", "employmentStatus": "active" },
+    { "fullName": "Zahid Zaidi", "jobTitle": "", "department": "Finance", "employmentStatus": "active" },
+    { "fullName": "Zainab Abdulla Ali Haider Ali", "jobTitle": "Customer Success Manager", "department": "Customer Success", "employmentStatus": "active" }
+  ],
   "plans": [
     {
       "id": "plan-001",
-      "employeeName": "Aisha Rahman",
-      "role": "Account Executive",
-      "department": "Sales",
-      "manager": "Rami Haddad",
-      "buddy": "Dina Saad",
-      "status": "ready_for_day_1",
-      "startDate": "2026-07-18",
-      "daysSinceJoining": -3,
-      "progress": 78,
-      "overdueTasks": 0,
-      "nextAction": "Laptop handover at 09:30",
+      "employeeName": "Ahmed Abdelrahem elsagher",
+      "role": "Support and Implementation Officer",
+      "department": "Support and Implementation",
+      "manager": "Qasim AlShakhoori",
+      "buddy": "Mohamed AbdulHadi Isa Shamlooh",
+      "status": "preparing",
+      "startDate": "2026-07-22",
+      "daysSinceJoining": -2,
+      "progress": 22,
+      "overdueTasks": 1,
+      "nextAction": "Finish access, equipment, and buddy handoff",
       "stage": "Pre-Start",
       "startWindow": "this_week",
-      "projectedCompletionDate": "2026-09-30",
-      "highlight": "All critical setup complete"
+      "projectedCompletionDate": "2026-10-20",
+      "highlight": "Imported as a new hire from headcount report"
     },
     {
       "id": "plan-002",
-      "employeeName": "Omar Khaled",
-      "role": "Software Engineer",
-      "department": "Engineering",
-      "manager": "Noura Salem",
-      "buddy": "Yousef Ali",
-      "status": "delayed",
-      "startDate": "2026-07-16",
-      "daysSinceJoining": -1,
-      "progress": 54,
-      "overdueTasks": 2,
-      "nextAction": "Create GitHub and Notion access",
-      "stage": "Pre-Start",
-      "startWindow": "this_week",
-      "projectedCompletionDate": "2026-10-02",
-      "highlight": "Critical access tasks still open"
+      "employeeName": "Ali Maki Isa Ahmed Abbas",
+      "role": "Customer Success Manager",
+      "department": "Customer Success",
+      "manager": "Ali Maki Isa Ahmed Abbas",
+      "buddy": "Assigned by HR",
+      "status": "in_progress",
+      "startDate": "2026-05-14",
+      "daysSinceJoining": 67,
+      "progress": 61,
+      "overdueTasks": 1,
+      "nextAction": "Complete milestone check-in",
+      "stage": "Week 1",
+      "startWindow": "this_month",
+      "projectedCompletionDate": "2026-07-30",
+      "highlight": "Imported from headcount report"
     },
     {
       "id": "plan-003",
-      "employeeName": "Lina Faris",
-      "role": "People Operations Specialist",
-      "department": "People",
-      "manager": "Maya Nasser",
-      "buddy": "Huda Karim",
-      "status": "in_progress",
-      "startDate": "2026-07-08",
-      "daysSinceJoining": 7,
-      "progress": 63,
-      "overdueTasks": 1,
-      "nextAction": "Week 1 manager review due tomorrow",
-      "stage": "Week 1",
-      "startWindow": "this_month",
-      "projectedCompletionDate": "2026-10-08",
-      "highlight": "Reading and check-ins on track"
+      "employeeName": "Fatima Almasoud",
+      "role": "Partnership Success Manager",
+      "department": "Sales",
+      "manager": "Hussain AlSayyad",
+      "buddy": "Assigned by HR",
+      "status": "ready_for_day_1",
+      "startDate": "2026-07-21",
+      "daysSinceJoining": -1,
+      "progress": 76,
+      "overdueTasks": 0,
+      "nextAction": "Confirm Day 1 schedule",
+      "stage": "Pre-Start",
+      "startWindow": "this_week",
+      "projectedCompletionDate": "2026-10-21",
+      "highlight": "Imported from headcount report"
     },
     {
       "id": "plan-004",
-      "employeeName": "Yara Mansour",
-      "role": "Customer Success Manager",
-      "department": "Customer Success",
-      "manager": "Fadi Qassem",
-      "buddy": "Sara Najjar",
+      "employeeName": "Suzan Alkhriesat",
+      "role": "Senior Finance Manager",
+      "department": "Finance",
+      "manager": "Suzan Alkhriesat",
+      "buddy": "Assigned by HR",
       "status": "awaiting_manager_confirmation",
-      "startDate": "2026-04-15",
+      "startDate": "2026-04-20",
       "daysSinceJoining": 91,
-      "progress": 98,
+      "progress": 94,
       "overdueTasks": 0,
       "nextAction": "Manager final confirmation",
       "stage": "Day 90",
       "startWindow": "this_quarter",
       "projectedCompletionDate": "2026-07-20",
-      "highlight": "Ready to close once manager confirms"
+      "highlight": "Imported from headcount report"
     }
   ],
   "roleTree": [
     {
-      "title": "Chief Executive Officer",
-      "name": "Luma Air",
+      "title": "Lumofy",
+      "name": "Ahmed Faraj",
       "children": [
         {
-          "title": "Chief People Officer",
-          "name": "Maya Nasser",
+          "title": "People & Culture",
+          "name": "Hasan Baqer Alhashimi",
           "children": [
             {
-              "title": "HR Operations Lead",
-              "name": "Mariam Al Farsi",
-              "children": [
-                {
-                  "title": "People Operations Specialist",
-                  "name": "Lina Faris"
-                }
-              ]
+              "title": "Employee Engagement & HR Ops Lead",
+              "name": "Hasan Baqer Alhashimi"
             }
           ]
         },
         {
-          "title": "Chief Revenue Officer",
-          "name": "Rami Haddad",
+          "title": "Sales",
+          "name": "Hussain AlSayyad",
           "children": [
             {
-              "title": "Sales Manager",
-              "name": "Dina Saad",
-              "children": [
-                {
-                  "title": "Account Executive",
-                  "name": "Aisha Rahman"
-                }
-              ]
+              "title": "Partnership Success Manager",
+              "name": "Fatima Almasoud"
             },
             {
-              "title": "Customer Success Director",
-              "name": "Fadi Qassem",
-              "children": [
-                {
-                  "title": "Customer Success Manager",
-                  "name": "Yara Mansour"
-                }
-              ]
+              "title": "Senior Business Development Representative",
+              "name": "Rania Belal Mohammad Qasim"
+            },
+            {
+              "title": "Acting BDR Lead",
+              "name": "Sara Mashrour"
             }
           ]
         },
         {
-          "title": "Chief Technology Officer",
-          "name": "Noura Salem",
+          "title": "Engineering",
+          "name": "Safa Alfulaij",
           "children": [
             {
-              "title": "Engineering Manager",
-              "name": "Yousef Ali",
-              "children": [
-                {
-                  "title": "Software Engineer",
-                  "name": "Omar Khaled"
-                }
-              ]
+              "title": "Backend Developer",
+              "name": "Abdulrahman Mohamed AlTayeb"
+            },
+            {
+              "title": "Senior AI Developer",
+              "name": "Adel El Nabarawy"
+            },
+            {
+              "title": "Principle Engineer",
+              "name": "Ahmed Ibrahim"
+            },
+            {
+              "title": "Backend Developer",
+              "name": "Ali Husain"
+            },
+            {
+              "title": "Frontend Developer",
+              "name": "Assma Tawfik Ali Ben Mussa"
+            },
+            {
+              "title": "Frontend Developer",
+              "name": "Mosses Oderinde"
+            }
+          ]
+        },
+        {
+          "title": "Support and Implementation",
+          "name": "Qasim AlShakhoori",
+          "children": [
+            {
+              "title": "Support and Implementation Officer",
+              "name": "Ahmed Abdelrahem elsagher"
+            },
+            {
+              "title": "Support and Implementation Officer",
+              "name": "Mohamed AbdulHadi Isa Shamlooh"
+            }
+          ]
+        },
+        {
+          "title": "Customer Success",
+          "name": "Ali Maki Isa Ahmed Abbas",
+          "children": [
+            {
+              "title": "Customer Success Manager",
+              "name": "Zainab Abdulla Ali Haider Ali"
+            }
+          ]
+        },
+        {
+          "title": "Product",
+          "name": "Shehab Mohamed ElHadi",
+          "children": [
+            {
+              "title": "QC Engineer",
+              "name": "Abdelrahman tarek"
+            },
+            {
+              "title": "Mid- Product Designer",
+              "name": "Mohamed Ahmed Mohamed Abel Wahab"
+            }
+          ]
+        },
+        {
+          "title": "Marketing",
+          "name": "Reem Sharar",
+          "children": [
+            {
+              "title": "Content Marketing Specialist",
+              "name": "Sayed Hussain Asaad Ali Almukhtar"
+            },
+            {
+              "title": "Senior Brand Designer",
+              "name": "Tasneem ElGhareeb"
+            }
+          ]
+        },
+        {
+          "title": "Finance",
+          "name": "Suzan Alkhriesat",
+          "children": [
+            {
+              "title": "Finance & Admin Officer",
+              "name": "Mustafa Mahmood Asghar AbdulWahab"
+            },
+            {
+              "title": "Team Member",
+              "name": "Zahid Zaidi"
+            }
+          ]
+        },
+        {
+          "title": "Professional Services",
+          "name": "Nouha Esmail",
+          "children": [
+            {
+              "title": "Senior eLearning Experince Design",
+              "name": "Eman Farag Ktob"
+            },
+            {
+              "title": "Senior ELearning Developer",
+              "name": "Mary Ashraf"
+            }
+          ]
+        },
+        {
+          "title": "Automation",
+          "name": "Sayed Jehad Saeed Hasan",
+          "children": [
+            {
+              "title": "Business Automation Specialist",
+              "name": "Sayed Jehad Saeed Hasan"
+            }
+          ]
+        },
+        {
+          "title": "Management",
+          "name": "Ahmed Faraj",
+          "children": [
+            {
+              "title": "Cofounder & COO",
+              "name": "Mahmood Malik"
+            },
+            {
+              "title": "Customer Success & Professional Service Director",
+              "name": "Mahmoud Elreweny"
+            }
+          ]
+        },
+        {
+          "title": "Professionsal Services RevOps and Automation",
+          "name": "Mahmoud Elreweny",
+          "children": [
+            {
+              "title": "Customer Success & Professional Service Director",
+              "name": "Mahmoud Elreweny"
             }
           ]
         }
@@ -172,18 +322,18 @@
     }
   ],
   "detail": {
-    "employeeName": "Aisha Rahman",
-    "role": "Account Executive",
-    "department": "Sales",
-    "manager": "Rami Haddad",
-    "buddy": "Dina Saad",
-    "hrContact": "Mariam Al Farsi",
+    "employeeName": "Ahmed Abdelrahem elsagher",
+    "role": "Support and Implementation Officer",
+    "department": "Support and Implementation",
+    "manager": "Qasim AlShakhoori",
+    "buddy": "Mohamed AbdulHadi Isa Shamlooh",
+    "hrContact": "Hasan Baqer Alhashimi",
     "itContact": "IT Service Desk",
-    "startDate": "2026-07-18",
-    "status": "ready_for_day_1",
-    "completion": 78,
-    "overdueTasks": 0,
-    "nextActivity": "Welcome and orientation",
+    "startDate": "2026-07-22",
+    "status": "preparing",
+    "completion": 22,
+    "overdueTasks": 1,
+    "nextActivity": "Access and workstation setup",
     "tabs": [
       "Overview",
       "Tasks",
@@ -199,29 +349,29 @@
       {
         "title": "Send welcome email",
         "owner": "HR",
-        "dueDate": "2026-07-13",
+        "dueDate": "2026-07-18",
         "status": "Completed",
         "required": true
       },
       {
         "title": "Create Microsoft 365 account",
         "owner": "IT",
-        "dueDate": "2026-07-14",
-        "status": "Completed",
+        "dueDate": "2026-07-20",
+        "status": "In Progress",
         "required": true
       },
       {
         "title": "Add employee to Notion",
         "owner": "IT / Manager",
-        "dueDate": "2026-07-16",
-        "status": "In Progress",
+        "dueDate": "2026-07-21",
+        "status": "Not Started",
         "required": true
       },
       {
         "title": "Prepare laptop and equipment",
         "owner": "Operations",
-        "dueDate": "2026-07-16",
-        "status": "Completed",
+        "dueDate": "2026-07-21",
+        "status": "Blocked",
         "required": true
       }
     ],
@@ -230,13 +380,13 @@
         "time": "09:00",
         "activity": "Welcome and orientation",
         "owner": "Manager",
-        "location": "Sales floor"
+        "location": "Support pod"
       },
       {
         "time": "09:30",
         "activity": "Account and equipment setup",
         "owner": "IT / Buddy",
-        "location": "Desk A-14"
+        "location": "Desk SI-03"
       },
       {
         "time": "10:30",
@@ -248,25 +398,25 @@
         "time": "13:30",
         "activity": "Role expectations and goals",
         "owner": "Manager",
-        "location": "Focus room 2"
+        "location": "Meeting room 3"
       }
     ],
     "goals": [
       {
         "milestone": "30 Days",
-        "title": "Complete sales onboarding and first prospecting sequence",
-        "progress": 60,
+        "title": "Complete implementation onboarding and first customer handover shadowing",
+        "progress": 20,
         "status": "In Progress"
       },
       {
         "milestone": "60 Days",
-        "title": "Own weekly outbound targets with limited support",
-        "progress": 20,
+        "title": "Own standard implementation tasks with limited support",
+        "progress": 0,
         "status": "Not Started"
       },
       {
         "milestone": "90 Days",
-        "title": "Independently manage pipeline hygiene and reporting",
+        "title": "Independently manage onboarding and support workflows",
         "progress": 0,
         "status": "Not Started"
       }
@@ -285,7 +435,7 @@
       {
         "tool": "Notion",
         "owner": "IT / Manager",
-        "status": "In Progress"
+        "status": "Not Started"
       },
       {
         "tool": "Lumofy",
@@ -295,17 +445,17 @@
     ],
     "contacts": [
       {
-        "name": "Rami Haddad",
+        "name": "Qasim AlShakhoori",
         "role": "Direct Manager",
         "purpose": "Priorities, expectations, and feedback"
       },
       {
-        "name": "Dina Saad",
+        "name": "Mohamed AbdulHadi Isa Shamlooh",
         "role": "Onboarding Buddy",
         "purpose": "Daily questions and team culture"
       },
       {
-        "name": "Mariam Al Farsi",
+        "name": "Hasan Baqer Alhashimi",
         "role": "HR Contact",
         "purpose": "Policies, payroll, and support"
       },
