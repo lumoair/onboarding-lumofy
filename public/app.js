@@ -527,17 +527,22 @@ function renderDetail(detail) {
 
 async function load() {
   setText("generated-at", "Loading dashboard...");
-  const response = await fetch("/api/onboarding", {
-    cache: "no-store",
-    credentials: "same-origin"
-  });
+  if (window.__ONBOARDING_DATA__) {
+    onboardingData = window.__ONBOARDING_DATA__;
+  } else {
+    const response = await fetch("/api/onboarding", {
+      cache: "no-store",
+      credentials: "same-origin"
+    });
 
-  if (response.status === 401) {
-    window.location.href = "/login";
-    return;
+    if (response.status === 401) {
+      window.location.href = "/login";
+      return;
+    }
+
+    onboardingData = await response.json();
   }
 
-  onboardingData = await response.json();
   onboardingData = hydrateData(onboardingData);
 
   renderDashboard(onboardingData);

@@ -138,6 +138,37 @@ function serveFile(filePath, res) {
   });
 }
 
+function buildAppPayload() {
+  return {
+    generatedAt: new Date().toISOString(),
+    deployment: deploymentInfo,
+    stats: getDashboardStats(sampleData.plans),
+    ...sampleData
+  };
+}
+
+function serveAppPage(filePath, res) {
+  fs.readFile(filePath, "utf8", (error, content) => {
+    if (error) {
+      res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end("Not found");
+      return;
+    }
+
+    const payload = JSON.stringify(buildAppPayload()).replace(/</g, "\\u003c");
+    const injected = content.replace(
+      "</body>",
+      `<script>window.__ONBOARDING_DATA__ = ${payload};</script></body>`
+    );
+
+    res.writeHead(200, {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-store, no-cache, must-revalidate"
+    });
+    res.end(injected);
+  });
+}
+
 function getDashboardStats(plans) {
   const now = new Date();
   const currentMonth = now.getUTCMonth();
@@ -216,12 +247,7 @@ const server = http.createServer((req, res) => {
   }
 
   if (requestUrl.pathname === "/api/onboarding") {
-    sendJson(res, 200, {
-      generatedAt: new Date().toISOString(),
-      deployment: deploymentInfo,
-      stats: getDashboardStats(sampleData.plans),
-      ...sampleData
-    });
+    sendJson(res, 200, buildAppPayload());
     return;
   }
 
@@ -231,7 +257,7 @@ const server = http.createServer((req, res) => {
       return;
     }
 
-    serveFile(appHtmlPath, res);
+    serveAppPage(appHtmlPath, res);
     return;
   }
 
@@ -251,12 +277,17 @@ const server = http.createServer((req, res) => {
 
   fs.stat(filePath, (error, stats) => {
     if (!error && stats.isDirectory()) {
-      serveFile(path.join(filePath, "index.html"), res);
+      serveAppPage(path.join(filePath, "index.html"), res);
       return;
     }
 
     if (error) {
-      serveFile(path.join(publicDir, "index.html"), res);
+      serveAppPage(path.join(publicDir, "index.html"), res);
+      return;
+    }
+
+    if (path.extname(filePath).toLowerCase() === ".html" && protectedHtmlRoutes.has(requestUrl.pathname)) {
+      serveAppPage(filePath, res);
       return;
     }
 
