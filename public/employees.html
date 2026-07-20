@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/styles.css?v=20260720g" />
+    <link rel="stylesheet" href="/styles.css?v=20260720h" />
   </head>
   <body>
     <div class="page-shell">
@@ -22,19 +22,21 @@
             <h1>Onboarding Control Centre</h1>
           </div>
         </div>
+
         <nav class="nav-block">
           <a class="nav-link" href="/">Dashboard</a>
           <a class="nav-link active" href="/employees.html">Employees</a>
           <a class="nav-link" href="/tree.html">Company Role Tree</a>
-          <a class="nav-link" href="/plan.html">Onboarding Plan</a>
+          <a class="nav-link" href="/plan.html">Onboarding Plans</a>
           <a class="nav-link" href="/engagement.html">Engagement</a>
         </nav>
+
         <div class="sidebar-card">
-          <p class="eyebrow">Source</p>
+          <p class="eyebrow">Dataset</p>
           <ul class="compact-list">
-            <li>Imported from headcount report</li>
-            <li>Employee names and job titles</li>
-            <li>Department and status</li>
+            <li>Imported headcount source</li>
+            <li>Employee, role, department, manager</li>
+            <li>Feeds plans, tree, and engagement identity</li>
           </ul>
           <form method="post" action="/logout">
             <button class="secondary-button" type="submit">Log Out</button>
@@ -44,60 +46,91 @@
 
       <main class="content">
         <section class="hero">
-          <div>
-            <p class="eyebrow">Employees</p>
-            <h2>Imported employee directory for onboarding control.</h2>
+          <div class="hero-header">
+            <div>
+              <p class="eyebrow">Employees</p>
+              <h2>Use the employee dataset as the source of truth.</h2>
+            </div>
             <p class="hero-copy">
-              This page shows the employee list imported from the latest headcount spreadsheet and used by the control centre.
+              This page isolates the imported directory so HR can verify names, departments, reporting lines, and
+              employment status before those records flow into onboarding plans and org structure.
             </p>
+            <div class="hero-meta">
+              <article class="hero-stat">
+                <p class="eyebrow">Source</p>
+                <span class="hero-value">Headcount</span>
+                <p>Imported employee list backing the control centre.</p>
+              </article>
+              <article class="hero-stat">
+                <p class="eyebrow">Output</p>
+                <span class="hero-value">Plans</span>
+                <p>Used to derive onboarding and manager ownership.</p>
+              </article>
+              <article class="hero-stat">
+                <p class="eyebrow">Checks</p>
+                <span class="hero-value">Roles</span>
+                <p>Spot missing titles, departments, and manager gaps.</p>
+              </article>
+            </div>
           </div>
-          <div class="hero-panel">
-            <span class="pulse"></span>
-            <p class="hero-kicker">Employee source</p>
-            <strong id="generated-at">Loading data...</strong>
-            <p>Headcount-backed employee directory feeding queue, managers, and tree.</p>
-            <div class="deployment-badge" id="deployment-badge">Build local@pending</div>
+
+          <div class="hero-aside">
+            <div class="hero-panel">
+              <span class="pulse"></span>
+              <p class="hero-kicker">Employee source</p>
+              <strong id="generated-at">Loading data...</strong>
+              <p>Headcount-backed directory feeding plans, manager views, and the company role tree.</p>
+              <div class="deployment-badge" id="deployment-badge">Build local@pending</div>
+            </div>
           </div>
         </section>
 
-        <section class="panel">
-          <div class="panel-header">
-            <div>
-              <p class="eyebrow">Employee Directory</p>
-              <h3>Imported employees</h3>
-            </div>
-          </div>
-          <div class="metrics" id="employee-summary-cards"></div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Employee</th>
-                  <th>Job Title</th>
-                  <th>Department</th>
-                  <th>Status</th>
-                  <th>Manager</th>
-                </tr>
-              </thead>
-              <tbody id="employee-rows"></tbody>
-            </table>
-          </div>
-        </section>
+        <section class="metrics" id="employee-summary-cards"></section>
 
-        <section class="panel">
-          <div class="panel-header">
-            <div>
-              <p class="eyebrow">Department View</p>
-              <h3>Department distribution</h3>
-            </div>
+        <div class="page-grid">
+          <div class="page-column">
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Directory</p>
+                  <h3>Imported employees</h3>
+                  <p class="section-copy">The same identities here are used throughout plans, hierarchy, and engagement.</p>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Employee</th>
+                      <th>Job Title</th>
+                      <th>Department</th>
+                      <th>Status</th>
+                      <th>Manager</th>
+                    </tr>
+                  </thead>
+                  <tbody id="employee-rows"></tbody>
+                </table>
+              </div>
+            </section>
           </div>
-          <div class="stack" id="department-breakdown"></div>
-        </section>
+
+          <div class="page-column">
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Department View</p>
+                  <h3>Distribution</h3>
+                  <p class="section-copy">Counts roll up by department from the same imported employee source.</p>
+                </div>
+              </div>
+              <div class="stack" id="department-breakdown"></div>
+            </section>
+          </div>
+        </div>
       </main>
     </div>
 
     __ONBOARDING_DATA_SCRIPT__
-    __ONBOARDING_DATA_SCRIPT__
     <script src="/app.js?v=20260720g"></script>
   </body>
-  </html>
+</html>

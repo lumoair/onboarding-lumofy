@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lumofy Onboarding Plan</title>
+    <title>Lumofy Onboarding Plans</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/styles.css?v=20260720g" />
+    <link rel="stylesheet" href="/styles.css?v=20260720h" />
   </head>
   <body>
     <div class="page-shell">
@@ -22,19 +22,21 @@
             <h1>Onboarding Control Centre</h1>
           </div>
         </div>
+
         <nav class="nav-block">
           <a class="nav-link" href="/">Dashboard</a>
           <a class="nav-link" href="/employees.html">Employees</a>
           <a class="nav-link" href="/tree.html">Company Role Tree</a>
-          <a class="nav-link active" href="/plan.html">Onboarding Plan</a>
+          <a class="nav-link active" href="/plan.html">Onboarding Plans</a>
           <a class="nav-link" href="/engagement.html">Engagement</a>
         </nav>
+
         <div class="sidebar-card">
           <p class="eyebrow">Plan View</p>
           <ul class="compact-list">
-            <li>Pre-start and Day 1</li>
-            <li>30/60/90 goals</li>
-            <li>Tools and contacts</li>
+            <li>Pre-start checklist and Day 1 schedule</li>
+            <li>Goals, access items, and key contacts</li>
+            <li>Selected plan context from shared data</li>
           </ul>
           <form method="post" action="/logout">
             <button class="secondary-button" type="submit">Log Out</button>
@@ -44,19 +46,42 @@
 
       <main class="content">
         <section class="hero">
-          <div>
-            <p class="eyebrow">Plan Detail</p>
-            <h2>Single onboarding plan page with milestones, access, and contacts.</h2>
+          <div class="hero-header">
+            <div>
+              <p class="eyebrow">Onboarding Plans</p>
+              <h2>Work one employee plan without dashboard noise.</h2>
+            </div>
             <p class="hero-copy">
-              This page isolates the selected onboarding plan so the dashboard stays operational and the plan stays focused.
+              This page gives the selected onboarding record its own operating space for tasks, schedule, goals,
+              tooling, contacts, and progress so HR or managers can focus on execution.
             </p>
+            <div class="hero-meta">
+              <article class="hero-stat">
+                <p class="eyebrow">Focus</p>
+                <span class="hero-value">Plan</span>
+                <p>Single onboarding record with milestones and ownership.</p>
+              </article>
+              <article class="hero-stat">
+                <p class="eyebrow">Tracks</p>
+                <span class="hero-value">Tasks</span>
+                <p>Pre-start, Day 1, goals, access, and contacts.</p>
+              </article>
+              <article class="hero-stat">
+                <p class="eyebrow">Used By</p>
+                <span class="hero-value">HR + Mgr</span>
+                <p>Operational plan view without the broader queue.</p>
+              </article>
+            </div>
           </div>
-          <div class="hero-panel">
-            <span class="pulse"></span>
-            <p class="hero-kicker">Selected plan</p>
-            <strong id="generated-at">Loading data...</strong>
-            <p>Plan detail, schedule, goals, tools, and contact ownership.</p>
-            <div class="deployment-badge" id="deployment-badge">Build local@pending</div>
+
+          <div class="hero-aside">
+            <div class="hero-panel">
+              <span class="pulse"></span>
+              <p class="hero-kicker">Selected plan</p>
+              <strong id="generated-at">Loading data...</strong>
+              <p>Plan detail, schedule, goals, tool access, and onboarding contacts for the active employee.</p>
+              <div class="deployment-badge" id="deployment-badge">Build local@pending</div>
+            </div>
           </div>
         </section>
 
@@ -66,6 +91,7 @@
               <div>
                 <p class="eyebrow">Plan Detail</p>
                 <h3 id="detail-title">Loading plan detail</h3>
+                <p class="section-copy">Tabs are rendered by the shared app data and remain scoped to this page.</p>
               </div>
               <div class="pill-row" id="tab-row"></div>
             </div>
@@ -81,34 +107,44 @@
             </div>
           </article>
 
-          <article class="panel">
-            <div class="subsection">
-              <p class="eyebrow">Overview</p>
-              <h3>Plan owner snapshot</h3>
-              <div class="employee-card" id="employee-card"></div>
-            </div>
-            <div class="subsection">
-              <p class="eyebrow">Goals</p>
-              <h3>30/60/90-Day plan</h3>
-              <div class="stack" id="goals-list"></div>
-            </div>
-            <div class="subsection">
-              <p class="eyebrow">Tools and Access</p>
-              <h3>Provisioning status</h3>
-              <div class="stack" id="tools-list"></div>
-            </div>
-            <div class="subsection">
-              <p class="eyebrow">Key Contacts</p>
-              <h3>Who the employee calls</h3>
-              <div class="stack" id="contacts-list"></div>
-            </div>
+          <article class="page-column">
+            <section class="panel">
+              <div class="subsection">
+                <p class="eyebrow">Overview</p>
+                <h3>Selected employee</h3>
+                <div class="employee-card" id="employee-card"></div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="subsection">
+                <p class="eyebrow">30 / 60 / 90</p>
+                <h3>Goal progression</h3>
+                <div class="stack" id="goals-list"></div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="subsection">
+                <p class="eyebrow">Access</p>
+                <h3>Tools and systems</h3>
+                <div class="stack" id="tools-list"></div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="subsection">
+                <p class="eyebrow">Contacts</p>
+                <h3>Key people</h3>
+                <div class="stack" id="contacts-list"></div>
+              </div>
+            </section>
           </article>
         </section>
       </main>
     </div>
 
     __ONBOARDING_DATA_SCRIPT__
-    __ONBOARDING_DATA_SCRIPT__
     <script src="/app.js?v=20260720g"></script>
   </body>
-  </html>
+</html>

@@ -10,10 +10,10 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/styles.css?v=20260720g" />
+    <link rel="stylesheet" href="/styles.css?v=20260720h" />
   </head>
   <body>
-    <div class="page-shell" id="app-shell">
+    <div class="page-shell">
       <aside class="sidebar">
         <div class="brand">
           <div class="brand-mark">L</div>
@@ -27,18 +27,17 @@
           <a class="nav-link active" href="/">Dashboard</a>
           <a class="nav-link" href="/employees.html">Employees</a>
           <a class="nav-link" href="/tree.html">Company Role Tree</a>
-          <a class="nav-link" href="/plan.html">Onboarding Plan</a>
+          <a class="nav-link" href="/plan.html">Onboarding Plans</a>
           <a class="nav-link" href="/engagement.html">Engagement</a>
         </nav>
 
         <div class="sidebar-card">
-          <p class="eyebrow">MVP Coverage</p>
+          <p class="eyebrow">Coverage</p>
           <ul class="compact-list">
-            <li>Templates and plan creation</li>
-            <li>Pre-start, Day 1, Week 1</li>
-            <li>30/60/90 goals</li>
-            <li>Notifications and audit trail</li>
-            <li>Manager and employee views</li>
+            <li>HR queue and manual plan intake</li>
+            <li>Manager ownership and day-one readiness</li>
+            <li>Employee progress, access, and milestones</li>
+            <li>Render-ready static UI with server-side auth</li>
           </ul>
           <form method="post" action="/logout">
             <button class="secondary-button" type="submit">Log Out</button>
@@ -48,135 +47,171 @@
 
       <main class="content">
         <section class="hero" id="dashboard">
-          <div>
-            <p class="eyebrow">Admin Control Centre</p>
-            <h2>Track readiness before Day 1, not after something breaks.</h2>
+          <div class="hero-header">
+            <div>
+              <p class="eyebrow">Admin Control Centre</p>
+              <h2>Run onboarding from one control surface.</h2>
+            </div>
             <p class="hero-copy">
-              A structured onboarding control centre for HR, managers, IT, buddies, and employees with clear
-              ownership, progress visibility, and overdue risk detection.
+              HR, managers, IT, buddies, and employees all feed into a single queue for readiness, access,
+              probation, and early-stage execution. This page stays focused on control, risk, and the next action.
             </p>
+            <div class="hero-meta">
+              <article class="hero-stat">
+                <p class="eyebrow">View</p>
+                <span class="hero-value">HR</span>
+                <p>Current control queue and onboarding health.</p>
+              </article>
+              <article class="hero-stat">
+                <p class="eyebrow">Tracks</p>
+                <span class="hero-value">Plans</span>
+                <p>Readiness, ownership, overdue items, and momentum.</p>
+              </article>
+              <article class="hero-stat">
+                <p class="eyebrow">Use</p>
+                <span class="hero-value">Daily</span>
+                <p>Built for active follow-up, not passive reporting.</p>
+              </article>
+            </div>
           </div>
-          <div class="hero-panel">
-            <span class="pulse"></span>
-            <p class="hero-kicker">Live prototype</p>
-            <strong id="generated-at">Loading data...</strong>
-            <p>Static sample dataset served by a zero-dependency Node app, ready for Render deployment.</p>
-            <div class="deployment-badge" id="deployment-badge">Build local@pending</div>
+
+          <div class="hero-aside">
+            <div class="hero-panel">
+              <span class="pulse"></span>
+              <p class="hero-kicker">Live control state</p>
+              <strong id="generated-at">Loading data...</strong>
+              <p>
+                Server-rendered data hydrates the dashboard before the shared app logic runs, so the queue, plan detail,
+                and linked pages stay in sync.
+              </p>
+              <div class="deployment-badge" id="deployment-badge">Build local@pending</div>
+            </div>
           </div>
         </section>
 
         <section class="metrics" id="summary-cards"></section>
 
-        <section class="panel">
-          <div class="panel-header">
-            <div>
-              <p class="eyebrow">HR View</p>
-              <h3>Current onboarding control queue</h3>
-            </div>
-          </div>
-          <div class="hr-actions">
-            <div class="pill-row hr-toolbar">
-              <span class="pill">Filter: Department</span>
-              <span class="pill">Filter: Manager</span>
-              <span class="pill">Delayed only</span>
-            </div>
-            <button class="primary-button add-button" id="add-plan-button" type="button">+ Add Onboarding Row</button>
-          </div>
-          <form class="inline-form" id="add-plan-form" hidden>
-            <label class="field">
-              <span>Employee</span>
-              <input name="employeeName" type="text" required />
-            </label>
-            <label class="field">
-              <span>Department</span>
-              <input name="department" type="text" required />
-            </label>
-            <label class="field">
-              <span>Role</span>
-              <input name="role" type="text" required />
-            </label>
-            <label class="field">
-              <span>Start Date</span>
-              <input name="startDate" type="date" required />
-            </label>
-            <label class="field">
-              <span>Manager</span>
-              <input name="manager" type="text" required />
-            </label>
-            <label class="field">
-              <span>Progress %</span>
-              <input name="progress" type="number" min="0" max="100" value="0" required />
-            </label>
-            <label class="field">
-              <span>Overdue</span>
-              <input name="overdueTasks" type="number" min="0" value="0" required />
-            </label>
-            <label class="field">
-              <span>Status</span>
-              <select name="status" required>
-                <option value="preparing">Preparing</option>
-                <option value="ready_for_day_1">Ready for Day 1</option>
-                <option value="in_progress">In Progress</option>
-                <option value="delayed">Delayed</option>
-                <option value="awaiting_manager_confirmation">Awaiting Manager Confirmation</option>
-                <option value="completed">Completed</option>
-              </select>
-            </label>
-            <label class="field field-wide">
-              <span>Next Action</span>
-              <input name="nextAction" type="text" required />
-            </label>
-            <div class="form-actions">
-              <button class="primary-button" type="submit">Save Row</button>
-              <button class="ghost-button" id="cancel-plan-button" type="button">Cancel</button>
-            </div>
-          </form>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Employee</th>
-                  <th>Role</th>
-                  <th>Start Date</th>
-                  <th>Manager</th>
-                  <th>Progress</th>
-                  <th>Overdue</th>
-                  <th>Status</th>
-                  <th>Next Action</th>
-                </tr>
-              </thead>
-              <tbody id="plan-rows"></tbody>
-            </table>
-          </div>
-        </section>
-
-        <section class="dual-grid">
-          <article class="panel" id="manager">
-            <div class="panel-header">
-              <div>
-                <p class="eyebrow">Manager Portal</p>
-                <h3>Manager action queue</h3>
+        <div class="page-grid">
+          <div class="page-column">
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">HR Queue</p>
+                  <h3>Current onboarding control queue</h3>
+                  <p class="section-copy">
+                    Add a new onboarding row directly from HR, filter the active queue, and use the selected plan as the
+                    working context for the rest of the control centre.
+                  </p>
+                </div>
               </div>
-            </div>
-            <div class="stack" id="manager-cards"></div>
-          </article>
 
-          <article class="panel" id="employee">
-            <div class="panel-header">
-              <div>
-                <p class="eyebrow">Talent Portal</p>
-                <h3>Employee onboarding view</h3>
+              <div class="hr-actions">
+                <div class="pill-row hr-toolbar">
+                  <span class="pill">Filter: Department</span>
+                  <span class="pill">Filter: Manager</span>
+                  <span class="pill">Delayed only</span>
+                </div>
+                <button class="primary-button add-button" id="add-plan-button" type="button">+ Add Onboarding Row</button>
               </div>
-            </div>
-            <div class="employee-card" id="employee-card"></div>
-          </article>
-        </section>
 
+              <form class="inline-form" id="add-plan-form" hidden>
+                <label class="field">
+                  <span>Employee</span>
+                  <input name="employeeName" type="text" required />
+                </label>
+                <label class="field">
+                  <span>Department</span>
+                  <input name="department" type="text" required />
+                </label>
+                <label class="field">
+                  <span>Role</span>
+                  <input name="role" type="text" required />
+                </label>
+                <label class="field">
+                  <span>Start Date</span>
+                  <input name="startDate" type="date" required />
+                </label>
+                <label class="field">
+                  <span>Manager</span>
+                  <input name="manager" type="text" required />
+                </label>
+                <label class="field">
+                  <span>Progress %</span>
+                  <input name="progress" type="number" min="0" max="100" value="0" required />
+                </label>
+                <label class="field">
+                  <span>Overdue</span>
+                  <input name="overdueTasks" type="number" min="0" value="0" required />
+                </label>
+                <label class="field">
+                  <span>Status</span>
+                  <select name="status" required>
+                    <option value="preparing">Preparing</option>
+                    <option value="ready_for_day_1">Ready for Day 1</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="delayed">Delayed</option>
+                    <option value="awaiting_manager_confirmation">Awaiting Manager Confirmation</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </label>
+                <label class="field field-wide">
+                  <span>Next Action</span>
+                  <input name="nextAction" type="text" required />
+                </label>
+                <div class="form-actions">
+                  <button class="primary-button" type="submit">Save Row</button>
+                  <button class="ghost-button" id="cancel-plan-button" type="button">Cancel</button>
+                </div>
+              </form>
+
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Employee</th>
+                      <th>Role</th>
+                      <th>Start Date</th>
+                      <th>Manager</th>
+                      <th>Progress</th>
+                      <th>Overdue</th>
+                      <th>Status</th>
+                      <th>Next Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="plan-rows"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+
+          <div class="page-column">
+            <section class="panel" id="manager">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Manager Portal</p>
+                  <h3>Action queue</h3>
+                  <p class="section-copy">Manager-owned items pulled from the same onboarding dataset.</p>
+                </div>
+              </div>
+              <div class="stack" id="manager-cards"></div>
+            </section>
+
+            <section class="panel" id="employee">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Talent Portal</p>
+                  <h3>Selected employee snapshot</h3>
+                  <p class="section-copy">The selected row drives this employee-facing readiness summary.</p>
+                </div>
+              </div>
+              <div class="employee-card" id="employee-card"></div>
+            </section>
+          </div>
+        </div>
       </main>
     </div>
 
     __ONBOARDING_DATA_SCRIPT__
-    __ONBOARDING_DATA_SCRIPT__
     <script src="/app.js?v=20260720g"></script>
   </body>
-  </html>
+</html>

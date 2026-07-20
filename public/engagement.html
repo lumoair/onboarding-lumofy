@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/styles.css?v=20260720g" />
+    <link rel="stylesheet" href="/styles.css?v=20260720h" />
   </head>
   <body>
     <div class="page-shell">
@@ -22,19 +22,21 @@
             <h1>Onboarding Control Centre</h1>
           </div>
         </div>
+
         <nav class="nav-block">
           <a class="nav-link" href="/">Dashboard</a>
           <a class="nav-link" href="/employees.html">Employees</a>
           <a class="nav-link" href="/tree.html">Company Role Tree</a>
-          <a class="nav-link" href="/plan.html">Onboarding Plan</a>
+          <a class="nav-link" href="/plan.html">Onboarding Plans</a>
           <a class="nav-link active" href="/engagement.html">Engagement</a>
         </nav>
+
         <div class="sidebar-card">
-          <p class="eyebrow">Engagement</p>
+          <p class="eyebrow">Company Wide</p>
           <ul class="compact-list">
-            <li>Games available to everyone</li>
-            <li>Top 3 leaderboard by ELO</li>
-            <li>Cross-team participation</li>
+            <li>Visible to everyone</li>
+            <li>Leaderboard ranked by ELO</li>
+            <li>Lightweight culture and participation layer</li>
           </ul>
           <form method="post" action="/logout">
             <button class="secondary-button" type="submit">Log Out</button>
@@ -44,46 +46,78 @@
 
       <main class="content">
         <section class="hero">
-          <div>
-            <p class="eyebrow">Engagement</p>
-            <h2>Shared games and leaderboard for the full company.</h2>
+          <div class="hero-header">
+            <div>
+              <p class="eyebrow">Engagement</p>
+              <h2>Keep new hires connected while onboarding runs.</h2>
+            </div>
             <p class="hero-copy">
-              Engagement is visible to everyone, with lightweight games like Minesweeper and Chess plus a live top-three leaderboard by ELO.
+              The engagement page is separate from onboarding operations but stays inside the same product shell.
+              It gives everyone access to lightweight games and a visible top-three leaderboard by ELO.
             </p>
+            <div class="hero-meta">
+              <article class="hero-stat">
+                <p class="eyebrow">Audience</p>
+                <span class="hero-value">Everyone</span>
+                <p>Not hidden behind HR-only views.</p>
+              </article>
+              <article class="hero-stat">
+                <p class="eyebrow">Mode</p>
+                <span class="hero-value">Ranked</span>
+                <p>Leaderboard is counted by ELO.</p>
+              </article>
+              <article class="hero-stat">
+                <p class="eyebrow">Games</p>
+                <span class="hero-value">Social</span>
+                <p>Minesweeper, chess, and similar low-friction activities.</p>
+              </article>
+            </div>
           </div>
-          <div class="hero-panel">
-            <span class="pulse"></span>
-            <p class="hero-kicker">Open to everyone</p>
-            <strong id="generated-at">Loading data...</strong>
-            <p>Games, participation, and leaderboard standings across the company.</p>
-            <div class="deployment-badge" id="deployment-badge">Build local@pending</div>
+
+          <div class="hero-aside">
+            <div class="hero-panel">
+              <span class="pulse"></span>
+              <p class="hero-kicker">Open to everyone</p>
+              <strong id="generated-at">Loading data...</strong>
+              <p>Games, participation, and leaderboard standings across the company.</p>
+              <div class="deployment-badge" id="deployment-badge">Build local@pending</div>
+            </div>
           </div>
         </section>
 
-        <section class="panel">
-          <div class="panel-header">
-            <div>
-              <p class="eyebrow">Leaderboard</p>
-              <h3>Top 3 by ELO</h3>
-            </div>
-          </div>
-          <div class="metrics" id="engagement-summary-cards"></div>
-          <div class="stack" id="leaderboard-list"></div>
-        </section>
+        <section class="metrics" id="engagement-summary-cards"></section>
 
-        <section class="panel">
-          <div class="panel-header">
-            <div>
-              <p class="eyebrow">Games</p>
-              <h3>Engagement activities</h3>
-            </div>
+        <div class="page-grid">
+          <div class="page-column">
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Leaderboard</p>
+                  <h3>Top 3 by ELO</h3>
+                  <p class="section-copy">Shared standings across employees, tracked separately from onboarding progress.</p>
+                </div>
+              </div>
+              <div class="stack" id="leaderboard-list"></div>
+            </section>
           </div>
-          <div class="asset-grid" id="games-list"></div>
-        </section>
+
+          <div class="page-column">
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Games</p>
+                  <h3>Available activities</h3>
+                  <p class="section-copy">Each game card is rendered from the engagement dataset and available to everyone.</p>
+                </div>
+              </div>
+              <div class="asset-grid" id="games-list"></div>
+            </section>
+          </div>
+        </div>
       </main>
     </div>
 
     __ONBOARDING_DATA_SCRIPT__
     <script src="/app.js?v=20260720g"></script>
   </body>
-  </html>
+</html>
