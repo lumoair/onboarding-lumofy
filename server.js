@@ -157,8 +157,8 @@ function serveAppPage(filePath, res) {
 
     const payload = JSON.stringify(buildAppPayload()).replace(/</g, "\\u003c");
     const injected = content.replace(
-      "</body>",
-      `<script>window.__ONBOARDING_DATA__ = ${payload};</script></body>`
+      "__ONBOARDING_DATA_SCRIPT__",
+      `<script>window.__ONBOARDING_DATA__ = ${payload};</script>`
     );
 
     res.writeHead(200, {
