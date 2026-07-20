@@ -9,6 +9,8 @@ const cancelPlanButton = document.getElementById("cancel-plan-button");
 const roleTreeRoot = document.getElementById("role-tree");
 const deploymentBadge = document.getElementById("deployment-badge");
 const AUTH_STORAGE_KEY = "lumofy_preview_auth";
+const usernameInput = document.getElementById("username");
+const passwordInput = document.getElementById("password");
 let onboardingData = null;
 
 function statusClass(value) {
@@ -294,22 +296,34 @@ async function checkSession() {
   showAuth();
 }
 
-loginForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
+async function runPreviewSignIn() {
   authError.hidden = true;
 
-  const formData = new FormData(loginForm);
-  const username = String(formData.get("username") || "");
-  const password = String(formData.get("password") || "");
+  const username = String(usernameInput ? usernameInput.value : "");
+  const password = String(passwordInput ? passwordInput.value : "");
 
   if (username !== "user" || password !== "user") {
     showAuth("Invalid username or password");
-    return;
+    return false;
   }
 
   window.localStorage.setItem(AUTH_STORAGE_KEY, "true");
   await load();
-});
+  return true;
+}
+
+if (loginForm) {
+  loginForm.addEventListener("keydown", async (event) => {
+    if (event.key !== "Enter") {
+      return;
+    }
+
+    event.preventDefault();
+    await runPreviewSignIn();
+  });
+}
+
+window.lumofySignIn = runPreviewSignIn;
 
 logoutButton.addEventListener("click", async () => {
   window.localStorage.removeItem(AUTH_STORAGE_KEY);

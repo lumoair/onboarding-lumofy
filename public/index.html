@@ -20,7 +20,7 @@
         <p class="auth-copy">
           This prototype is a restricted preview of Lumofy’s onboarding control centre for HR, managers, IT, and support owners.
         </p>
-        <form id="login-form" class="auth-form">
+        <div id="login-form" class="auth-form">
           <label class="field">
             <span>Username</span>
             <input id="username" name="username" type="text" autocomplete="username" value="user" required />
@@ -36,10 +36,10 @@
               required
             />
           </label>
-          <button class="primary-button" type="submit">Sign In</button>
+          <button class="primary-button" id="sign-in-button" type="button" onclick="window.lumofySignIn && window.lumofySignIn()">Sign In</button>
           <p class="auth-hint">Temporary credentials: <strong>user</strong> / <strong>user</strong></p>
           <p class="auth-error" id="auth-error" hidden></p>
-        </form>
+        </div>
       </section>
     </div>
 
@@ -284,31 +284,44 @@
 
     <script>
       (function () {
-        const form = document.getElementById("login-form");
+        const button = document.getElementById("sign-in-button");
+        const usernameNode = document.getElementById("username");
+        const passwordNode = document.getElementById("password");
         const errorNode = document.getElementById("auth-error");
 
-        if (!form || !errorNode) {
-          return;
-        }
+        window.lumofySignIn = function () {
+          if (!usernameNode || !passwordNode || !errorNode) {
+            return;
+          }
 
-        form.addEventListener("submit", function (event) {
-          const formData = new FormData(form);
-          const username = String(formData.get("username") || "");
-          const password = String(formData.get("password") || "");
+          const username = String(usernameNode.value || "");
+          const password = String(passwordNode.value || "");
 
           if (username === "user" && password === "user") {
-            event.preventDefault();
             window.localStorage.setItem("lumofy_preview_auth", "true");
+            const authShell = document.getElementById("auth-shell");
+            const appShell = document.getElementById("app-shell");
+            if (authShell && appShell) {
+              authShell.hidden = true;
+              appShell.hidden = false;
+            }
             window.location.reload();
             return;
           }
 
-          event.preventDefault();
           errorNode.hidden = false;
           errorNode.textContent = "Invalid username or password";
+        };
+
+        if (!button) {
+          return;
+        }
+
+        button.addEventListener("click", function () {
+          window.lumofySignIn();
         });
       })();
     </script>
-    <script src="/app.js?v=20260720a"></script>
+    <script src="/app.js?v=20260720b"></script>
   </body>
   </html>
