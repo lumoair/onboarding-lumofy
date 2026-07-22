@@ -13,12 +13,8 @@ const gamesList = document.getElementById("games-list");
 const addEmployeeButton = document.getElementById("add-employee-button");
 const addEmployeeForm = document.getElementById("add-employee-form");
 const cancelEmployeeButton = document.getElementById("cancel-employee-button");
-const employeeWorkspace = document.getElementById("employee-workspace");
-const employeeRoleForm = document.getElementById("employee-role-form");
 const employeeTaskList = document.getElementById("employee-task-list");
 const employeeTaskForm = document.getElementById("employee-task-form");
-const clockInButton = document.getElementById("clock-in-button");
-const clockOutButton = document.getElementById("clock-out-button");
 const publicChatList = document.getElementById("public-chat-list");
 const privateChatList = document.getElementById("private-chat-list");
 const publicChatForm = document.getElementById("public-chat-form");
@@ -53,6 +49,22 @@ function getSelectedEmployee() {
     selectedEmployeeId = employees[0].id;
   }
   return employees.find((employee) => employee.id === selectedEmployeeId) || employees[0];
+}
+
+function getEmployeeWorkspaceNode() {
+  return document.getElementById("employee-workspace");
+}
+
+function getEmployeeRoleForm() {
+  return document.getElementById("employee-role-form");
+}
+
+function getClockInButton() {
+  return document.getElementById("clock-in-button");
+}
+
+function getClockOutButton() {
+  return document.getElementById("clock-out-button");
 }
 
 function buildEmployeeMap(employees) {
@@ -359,8 +371,9 @@ function renderEmployees(employees) {
   }
 
   employeeRows.innerHTML = employees
-    .map(
-      (employee) => `
+    .map((employee) => {
+      const isSelected = employee.id === selectedEmployeeId;
+      return `
         <tr class="${employee.id === selectedEmployeeId ? "is-selected" : ""}" data-employee-id="${employee.id}">
           <td>
             <strong>${employee.fullName}</strong>
@@ -371,8 +384,61 @@ function renderEmployees(employees) {
           <td>${employee.employmentStatus}</td>
           <td>${getEmployeeManager(employee)}</td>
         </tr>
-      `
-    )
+        ${isSelected ? `
+          <tr class="employee-dropdown-row">
+            <td colspan="5">
+              <div class="employee-dropdown-card">
+                <div class="employee-dropdown-head">
+                  <p class="eyebrow">Selected Employee Control</p>
+                  <span class="pill">Inline dropdown</span>
+                </div>
+                <div class="employee-workspace-card" id="employee-workspace"></div>
+                <div class="clock-action-row">
+                  <button class="primary-button utility-button" id="clock-in-button" type="button">Clock In</button>
+                  <button class="ghost-button utility-button" id="clock-out-button" type="button">Clock Out</button>
+                </div>
+                <form class="inline-form compact-form" id="employee-role-form">
+                  <label class="field">
+                    <span>Role</span>
+                    <input name="jobTitle" type="text" required />
+                  </label>
+                  <label class="field">
+                    <span>Gender</span>
+                    <select name="gender" required>
+                      <option value="he/him">he/him</option>
+                      <option value="she/her">she/her</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Manager</span>
+                    <input name="manager" type="text" required />
+                  </label>
+                  <label class="field">
+                    <span>Outlook Email</span>
+                    <input name="email" type="email" />
+                  </label>
+                  <label class="field">
+                    <span>Mobile Number</span>
+                    <input name="phone" type="text" />
+                  </label>
+                  <label class="field">
+                    <span>CPR</span>
+                    <input name="cpr" type="text" />
+                  </label>
+                  <label class="field">
+                    <span>Passport</span>
+                    <input name="passport" type="text" />
+                  </label>
+                  <div class="form-actions">
+                    <button class="primary-button" type="submit">Save Employee</button>
+                  </div>
+                </form>
+              </div>
+            </td>
+          </tr>
+        ` : ""}
+      `;
+    })
     .join("");
 
   if (employeeSummaryCards) {
@@ -427,6 +493,11 @@ function renderEmployees(employees) {
 
 function renderEmployeeWorkspace() {
   const employee = getSelectedEmployee();
+  const employeeWorkspace = getEmployeeWorkspaceNode();
+  const employeeRoleForm = getEmployeeRoleForm();
+  const clockInButton = getClockInButton();
+  const clockOutButton = getClockOutButton();
+
   if (!employee) {
     if (employeeWorkspace) {
       employeeWorkspace.innerHTML = "<p class=\"muted\">No employee selected.</p>";
@@ -934,25 +1005,6 @@ if (addEmployeeButton && addEmployeeForm && cancelEmployeeButton) {
   });
 }
 
-if (employeeRoleForm) {
-  employeeRoleForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const employee = getSelectedEmployee();
-    if (!employee) {
-      return;
-    }
-
-    const formData = new FormData(employeeRoleForm);
-    try {
-      const nextData = await postJson(`/api/employees/${employee.id}/update`, Object.fromEntries(formData.entries()));
-      onboardingData = hydrateData(nextData);
-      renderDashboard(onboardingData);
-    } catch (error) {
-      console.error(error);
-    }
-  });
-}
-
 if (employeeTaskForm) {
   employeeTaskForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -973,8 +1025,31 @@ if (employeeTaskForm) {
   });
 }
 
-if (clockInButton) {
-  clockInButton.addEventListener("click", async () => {
+document.addEventListener("submit", async (event) => {
+  const employeeRoleForm = event.target.closest("#employee-role-form");
+  if (!employeeRoleForm) {
+    return;
+  }
+
+  event.preventDefault();
+  const employee = getSelectedEmployee();
+  if (!employee) {
+    return;
+  }
+
+  const formData = new FormData(employeeRoleForm);
+  try {
+    const nextData = await postJson(`/api/employees/${employee.id}/update`, Object.fromEntries(formData.entries()));
+    onboardingData = hydrateData(nextData);
+    renderDashboard(onboardingData);
+  } catch (error) {
+    console.error(error);
+  }
+});
+
+document.addEventListener("click", async (event) => {
+  const clockInButton = event.target.closest("#clock-in-button");
+  if (clockInButton) {
     const employee = getSelectedEmployee();
     if (!employee) {
       return;
@@ -987,11 +1062,11 @@ if (clockInButton) {
     } catch (error) {
       console.error(error);
     }
-  });
-}
+    return;
+  }
 
-if (clockOutButton) {
-  clockOutButton.addEventListener("click", async () => {
+  const clockOutButton = event.target.closest("#clock-out-button");
+  if (clockOutButton) {
     const employee = getSelectedEmployee();
     if (!employee) {
       return;
@@ -1004,8 +1079,8 @@ if (clockOutButton) {
     } catch (error) {
       console.error(error);
     }
-  });
-}
+  }
+});
 
 if (publicChatForm) {
   publicChatForm.addEventListener("submit", async (event) => {
