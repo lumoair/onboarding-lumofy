@@ -63,6 +63,7 @@ function getManagerMap() {
 
     ["Eman Farag Ktob", "Nouha Esmail"],
     ["Mary Ashraf", "Nouha Esmail"],
+    ["Mohammed (atlas)", "Safa Alfulaij"],
 
     ["Sayed Jehad Saeed Hasan", "Mahmood Malik"]
   ]);
