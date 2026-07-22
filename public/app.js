@@ -10,10 +10,49 @@ const treeSummaryCards = document.getElementById("tree-summary-cards");
 const engagementSummaryCards = document.getElementById("engagement-summary-cards");
 const leaderboardList = document.getElementById("leaderboard-list");
 const gamesList = document.getElementById("games-list");
+const addEmployeeButton = document.getElementById("add-employee-button");
+const addEmployeeForm = document.getElementById("add-employee-form");
+const cancelEmployeeButton = document.getElementById("cancel-employee-button");
+const employeeWorkspace = document.getElementById("employee-workspace");
+const employeeRoleForm = document.getElementById("employee-role-form");
+const employeeTaskList = document.getElementById("employee-task-list");
+const employeeTaskForm = document.getElementById("employee-task-form");
+const clockInButton = document.getElementById("clock-in-button");
+const clockOutButton = document.getElementById("clock-out-button");
+const publicChatList = document.getElementById("public-chat-list");
+const privateChatList = document.getElementById("private-chat-list");
+const publicChatForm = document.getElementById("public-chat-form");
+const privateChatForm = document.getElementById("private-chat-form");
+const privateChatRecipient = document.getElementById("private-chat-recipient");
 let onboardingData = null;
+let selectedEmployeeId = null;
 
 function normalizeDepartmentName(value) {
   return String(value || "").trim();
+}
+
+function getEmployeesData() {
+  return onboardingData?.employeeControl?.employees || onboardingData?.employees || [];
+}
+
+function getCurrentUser() {
+  return onboardingData?.currentUser || null;
+}
+
+function getEmployeeManager(employee) {
+  const managerMap = getManagerMap();
+  return employee.manager || managerMap.get(employee.fullName) || "Ahmed Faraj";
+}
+
+function getSelectedEmployee() {
+  const employees = getEmployeesData();
+  if (!employees.length) {
+    return null;
+  }
+  if (!selectedEmployeeId || !employees.find((employee) => employee.id === selectedEmployeeId)) {
+    selectedEmployeeId = employees[0].id;
+  }
+  return employees.find((employee) => employee.id === selectedEmployeeId) || employees[0];
 }
 
 function buildEmployeeMap(employees) {
@@ -77,7 +116,7 @@ function derivePlansFromEmployees(employees) {
     const department = normalizeDepartmentName(employee.department);
     const managerName = employee.fullName === "Ahmed Faraj"
       ? "Board / Founder"
-      : (managerMap.get(employee.fullName) || "Ahmed Faraj");
+      : (employee.manager || managerMap.get(employee.fullName) || "Ahmed Faraj");
     const isNewHire = employee.employmentStatus === "new hire";
     const status = isNewHire ? "preparing" : statuses[index % statuses.length];
     const progress = isNewHire ? 22 : status === "completed" ? 100 : status === "awaiting_manager_confirmation" ? 94 : status === "ready_for_day_1" ? 76 : 61;
@@ -116,7 +155,7 @@ function deriveRoleTreeFromEmployees(employees) {
   employees.forEach((employee) => {
     const manager = employee.fullName === rootName
       ? null
-      : (managerMap.get(employee.fullName) || rootName);
+      : (employee.manager || managerMap.get(employee.fullName) || rootName);
 
     if (!manager) {
       return;
@@ -186,6 +225,38 @@ function formatDate(value) {
     month: "short",
     year: "numeric"
   });
+}
+
+function formatDateTime(value) {
+  if (!value) {
+    return "Not recorded";
+  }
+
+  const date = new Date(value);
+  return date.toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+async function postJson(url, payload) {
+  const response = await fetch(url, {
+    method: "POST",
+    credentials: "same-origin",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || "Request failed");
+  }
+  return data;
 }
 
 function renderSummaryCards(cards, stats) {
@@ -283,16 +354,22 @@ function renderEmployees(employees) {
     return;
   }
 
-  const managerMap = getManagerMap();
+  if (!selectedEmployeeId && employees.length) {
+    selectedEmployeeId = employees[0].id;
+  }
+
   employeeRows.innerHTML = employees
     .map(
       (employee) => `
-        <tr>
-          <td><strong>${employee.fullName}</strong></td>
+        <tr class="${employee.id === selectedEmployeeId ? "is-selected" : ""}" data-employee-id="${employee.id}">
+          <td>
+            <strong>${employee.fullName}</strong>
+            <div class="muted">${employee.email || "No Outlook email yet"}</div>
+          </td>
           <td>${employee.jobTitle || "Unassigned Role"}</td>
           <td>${normalizeDepartmentName(employee.department)}</td>
           <td>${employee.employmentStatus}</td>
-          <td>${managerMap.get(employee.fullName) || "Ahmed Faraj"}</td>
+          <td>${getEmployeeManager(employee)}</td>
         </tr>
       `
     )
@@ -302,7 +379,8 @@ function renderEmployees(employees) {
     const active = employees.filter((employee) => employee.employmentStatus === "active").length;
     const newHires = employees.filter((employee) => employee.employmentStatus === "new hire").length;
     const departments = new Set(employees.map((employee) => normalizeDepartmentName(employee.department))).size;
-    const managers = new Set(employees.map((employee) => managerMap.get(employee.fullName) || "Ahmed Faraj")).size;
+    const managers = new Set(employees.map((employee) => getEmployeeManager(employee))).size;
+    const clockedIn = employees.filter((employee) => employee.attendance && employee.attendance.clockedIn).length;
 
     employeeSummaryCards.innerHTML = [
       { label: "Total Employees", value: employees.length, tone: "neutral" },
@@ -310,7 +388,7 @@ function renderEmployees(employees) {
       { label: "New Hires", value: newHires, tone: "warn" },
       { label: "Departments", value: departments, tone: "neutral" },
       { label: "Reporting Managers", value: managers, tone: "accent" },
-      { label: "Data Source", value: "XLSX", tone: "neutral" }
+      { label: "Clocked In", value: clockedIn, tone: "neutral" }
     ]
       .map(
         (card) => `
@@ -341,6 +419,129 @@ function renderEmployees(employees) {
         `
       )
       .join("");
+  }
+
+  renderEmployeeWorkspace();
+  renderEmployeeChats();
+}
+
+function renderEmployeeWorkspace() {
+  const employee = getSelectedEmployee();
+  if (!employee) {
+    if (employeeWorkspace) {
+      employeeWorkspace.innerHTML = "<p class=\"muted\">No employee selected.</p>";
+    }
+    return;
+  }
+
+  if (employeeWorkspace) {
+    const attendance = employee.attendance || {};
+    employeeWorkspace.innerHTML = `
+      <div class="employee-workspace-head">
+        <img class="profile-avatar profile-avatar-large" src="${employee.profileImage || "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Default_pfp.jpg/250px-Default_pfp.jpg"}" alt="${employee.fullName}" />
+        <div>
+          <strong>${employee.fullName}</strong>
+          <p class="muted">${employee.jobTitle || "Unassigned Role"} • ${employee.department}</p>
+          <p class="muted">Manager: ${getEmployeeManager(employee)}</p>
+        </div>
+      </div>
+      <div class="employee-meta-grid">
+        <article class="asset-card">
+          <strong>Attendance</strong>
+          <p>${attendance.clockedIn ? "Clocked in" : "Clocked out"}</p>
+          <p class="muted">Last in: ${formatDateTime(attendance.lastClockIn)}</p>
+          <p class="muted">Last out: ${formatDateTime(attendance.lastClockOut)}</p>
+        </article>
+        <article class="asset-card">
+          <strong>Identity</strong>
+          <p>${employee.email || "No Outlook email yet"}</p>
+          <p class="muted">${employee.phone || "No mobile number"}</p>
+          <p class="muted">CPR: ${employee.cpr || "Not recorded"}</p>
+          <p class="muted">Passport: ${employee.passport || "Not recorded"}</p>
+        </article>
+      </div>
+    `;
+  }
+
+  if (employeeRoleForm) {
+    employeeRoleForm.elements.jobTitle.value = employee.jobTitle || "";
+    employeeRoleForm.elements.manager.value = getEmployeeManager(employee);
+    employeeRoleForm.elements.email.value = employee.email || "";
+    employeeRoleForm.elements.phone.value = employee.phone || "";
+    employeeRoleForm.elements.cpr.value = employee.cpr || "";
+    employeeRoleForm.elements.passport.value = employee.passport || "";
+  }
+
+  if (employeeTaskList) {
+    employeeTaskList.innerHTML = (employee.assignedTasks || [])
+      .map(
+        (task) => `
+          <article class="task-card">
+            <div class="pill-row">
+              <span class="status-pill ${statusClass(task.status)}">${task.status.replaceAll("_", " ")}</span>
+              <span class="pill">${task.owner}</span>
+            </div>
+            <strong>${task.title}</strong>
+            <p class="muted">Due ${formatDate(task.dueDate)}</p>
+          </article>
+        `
+      )
+      .join("") || "<p class=\"muted\">No tasks assigned yet.</p>";
+  }
+
+  if (privateChatRecipient) {
+    privateChatRecipient.textContent = `Private thread with ${employee.fullName}`;
+  }
+
+  if (clockInButton) {
+    clockInButton.disabled = employee.attendance?.clockedIn;
+  }
+  if (clockOutButton) {
+    clockOutButton.disabled = !employee.attendance?.clockedIn;
+  }
+}
+
+function renderEmployeeChats() {
+  const employee = getSelectedEmployee();
+  const currentUser = getCurrentUser();
+  const control = onboardingData?.employeeControl || {};
+
+  if (publicChatList) {
+    publicChatList.innerHTML = (control.publicMessages || [])
+      .map(
+        (message) => `
+          <article class="chat-message ${message.author === currentUser?.displayName ? "is-own" : ""}">
+            <strong>${message.author}</strong>
+            <p>${message.message}</p>
+            <span class="muted">${formatDateTime(message.createdAt)}</span>
+          </article>
+        `
+      )
+      .join("") || "<p class=\"muted\">No public messages yet.</p>";
+  }
+
+  if (privateChatList) {
+    const thread = (control.privateMessages || []).filter((message) => {
+      if (!employee || !currentUser) {
+        return false;
+      }
+      return (
+        (message.from === currentUser.displayName && message.to === employee.fullName) ||
+        (message.from === employee.fullName && message.to === currentUser.displayName)
+      );
+    });
+
+    privateChatList.innerHTML = thread
+      .map(
+        (message) => `
+          <article class="chat-message ${message.from === currentUser?.displayName ? "is-own" : ""}">
+            <strong>${message.from}</strong>
+            <p>${message.message}</p>
+            <span class="muted">${formatDateTime(message.createdAt)}</span>
+          </article>
+        `
+      )
+      .join("") || "<p class=\"muted\">No private messages with this employee yet.</p>";
   }
 }
 
@@ -686,6 +887,160 @@ if (addPlanButton && addPlanForm && cancelPlanButton) {
     addPlanForm.reset();
     addPlanForm.hidden = true;
     addPlanButton.disabled = false;
+  });
+}
+
+if (employeeRows) {
+  employeeRows.addEventListener("click", (event) => {
+    const row = event.target.closest("[data-employee-id]");
+    if (!row) {
+      return;
+    }
+
+    selectedEmployeeId = row.getAttribute("data-employee-id");
+    renderEmployees(getEmployeesData());
+  });
+}
+
+if (addEmployeeButton && addEmployeeForm && cancelEmployeeButton) {
+  addEmployeeButton.addEventListener("click", () => {
+    addEmployeeForm.hidden = false;
+    addEmployeeButton.disabled = true;
+  });
+
+  cancelEmployeeButton.addEventListener("click", () => {
+    addEmployeeForm.reset();
+    addEmployeeForm.hidden = true;
+    addEmployeeButton.disabled = false;
+  });
+
+  addEmployeeForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(addEmployeeForm);
+
+    try {
+      const nextData = await postJson("/api/employees", Object.fromEntries(formData.entries()));
+      onboardingData = hydrateData(nextData);
+      selectedEmployeeId = `emp-${String(formData.get("fullName") || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}`;
+      renderDashboard(onboardingData);
+      addEmployeeForm.reset();
+      addEmployeeForm.hidden = true;
+      addEmployeeButton.disabled = false;
+    } catch (error) {
+      console.error(error);
+    }
+  });
+}
+
+if (employeeRoleForm) {
+  employeeRoleForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const employee = getSelectedEmployee();
+    if (!employee) {
+      return;
+    }
+
+    const formData = new FormData(employeeRoleForm);
+    try {
+      const nextData = await postJson(`/api/employees/${employee.id}/update`, Object.fromEntries(formData.entries()));
+      onboardingData = hydrateData(nextData);
+      renderDashboard(onboardingData);
+    } catch (error) {
+      console.error(error);
+    }
+  });
+}
+
+if (employeeTaskForm) {
+  employeeTaskForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const employee = getSelectedEmployee();
+    if (!employee) {
+      return;
+    }
+
+    const formData = new FormData(employeeTaskForm);
+    try {
+      const nextData = await postJson(`/api/employees/${employee.id}/tasks`, Object.fromEntries(formData.entries()));
+      onboardingData = hydrateData(nextData);
+      renderDashboard(onboardingData);
+      employeeTaskForm.reset();
+    } catch (error) {
+      console.error(error);
+    }
+  });
+}
+
+if (clockInButton) {
+  clockInButton.addEventListener("click", async () => {
+    const employee = getSelectedEmployee();
+    if (!employee) {
+      return;
+    }
+
+    try {
+      const nextData = await postJson(`/api/employees/${employee.id}/clock`, { action: "clock_in" });
+      onboardingData = hydrateData(nextData);
+      renderDashboard(onboardingData);
+    } catch (error) {
+      console.error(error);
+    }
+  });
+}
+
+if (clockOutButton) {
+  clockOutButton.addEventListener("click", async () => {
+    const employee = getSelectedEmployee();
+    if (!employee) {
+      return;
+    }
+
+    try {
+      const nextData = await postJson(`/api/employees/${employee.id}/clock`, { action: "clock_out" });
+      onboardingData = hydrateData(nextData);
+      renderDashboard(onboardingData);
+    } catch (error) {
+      console.error(error);
+    }
+  });
+}
+
+if (publicChatForm) {
+  publicChatForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(publicChatForm);
+
+    try {
+      const nextData = await postJson("/api/chat/public", Object.fromEntries(formData.entries()));
+      onboardingData = hydrateData(nextData);
+      renderDashboard(onboardingData);
+      publicChatForm.reset();
+    } catch (error) {
+      console.error(error);
+    }
+  });
+}
+
+if (privateChatForm) {
+  privateChatForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const employee = getSelectedEmployee();
+    if (!employee) {
+      return;
+    }
+
+    const formData = new FormData(privateChatForm);
+    try {
+      const nextData = await postJson("/api/chat/private", {
+        to: employee.fullName,
+        message: String(formData.get("message") || "")
+      });
+      onboardingData = hydrateData(nextData);
+      renderDashboard(onboardingData);
+      privateChatForm.reset();
+    } catch (error) {
+      console.error(error);
+    }
   });
 }
 

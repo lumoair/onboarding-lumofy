@@ -102,7 +102,53 @@
                   <h3>Imported employees</h3>
                   <p class="section-copy">The same identities here are used throughout plans, hierarchy, and engagement.</p>
                 </div>
+                <button class="primary-button add-button" id="add-employee-button" type="button">+ New Employee</button>
               </div>
+              <form class="inline-form" id="add-employee-form" hidden>
+                <label class="field">
+                  <span>Employee</span>
+                  <input name="fullName" type="text" required />
+                </label>
+                <label class="field">
+                  <span>Role</span>
+                  <input name="jobTitle" type="text" required />
+                </label>
+                <label class="field">
+                  <span>Department</span>
+                  <input name="department" type="text" required />
+                </label>
+                <label class="field">
+                  <span>Status</span>
+                  <select name="employmentStatus" required>
+                    <option value="new hire">New hire</option>
+                    <option value="active">Active</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Manager</span>
+                  <input name="manager" type="text" required />
+                </label>
+                <label class="field">
+                  <span>Outlook Email</span>
+                  <input name="email" type="email" />
+                </label>
+                <label class="field">
+                  <span>Mobile Number</span>
+                  <input name="phone" type="text" />
+                </label>
+                <label class="field">
+                  <span>CPR</span>
+                  <input name="cpr" type="text" />
+                </label>
+                <label class="field">
+                  <span>Passport</span>
+                  <input name="passport" type="text" />
+                </label>
+                <div class="form-actions">
+                  <button class="primary-button" type="submit">Create Employee</button>
+                  <button class="ghost-button" id="cancel-employee-button" type="button">Cancel</button>
+                </div>
+              </form>
               <div class="table-wrap">
                 <table>
                   <thead>
@@ -121,6 +167,112 @@
           </div>
 
           <div class="page-column">
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Employee Workspace</p>
+                  <h3>Selected employee control</h3>
+                  <p class="section-copy">Click an employee to manage role, identity data, tasks, clock state, and chat.</p>
+                </div>
+              </div>
+              <div class="employee-workspace-card" id="employee-workspace"></div>
+              <div class="clock-action-row">
+                <button class="primary-button utility-button" id="clock-in-button" type="button">Clock In</button>
+                <button class="ghost-button utility-button" id="clock-out-button" type="button">Clock Out</button>
+              </div>
+              <form class="inline-form compact-form" id="employee-role-form">
+                <label class="field">
+                  <span>Role</span>
+                  <input name="jobTitle" type="text" required />
+                </label>
+                <label class="field">
+                  <span>Manager</span>
+                  <input name="manager" type="text" required />
+                </label>
+                <label class="field">
+                  <span>Outlook Email</span>
+                  <input name="email" type="email" />
+                </label>
+                <label class="field">
+                  <span>Mobile Number</span>
+                  <input name="phone" type="text" />
+                </label>
+                <label class="field">
+                  <span>CPR</span>
+                  <input name="cpr" type="text" />
+                </label>
+                <label class="field">
+                  <span>Passport</span>
+                  <input name="passport" type="text" />
+                </label>
+                <div class="form-actions">
+                  <button class="primary-button" type="submit">Save Employee</button>
+                </div>
+              </form>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Tasks</p>
+                  <h3>Assign work</h3>
+                  <p class="section-copy">Assign employee tasks directly from the directory page.</p>
+                </div>
+              </div>
+              <div class="stack compact-scroll" id="employee-task-list"></div>
+              <form class="inline-form compact-form" id="employee-task-form">
+                <label class="field field-wide">
+                  <span>Task title</span>
+                  <input name="title" type="text" required />
+                </label>
+                <label class="field">
+                  <span>Due date</span>
+                  <input name="dueDate" type="date" required />
+                </label>
+                <label class="field">
+                  <span>Status</span>
+                  <select name="status" required>
+                    <option value="not_started">Not started</option>
+                    <option value="in_progress">In progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="blocked">Blocked</option>
+                  </select>
+                </label>
+                <div class="form-actions">
+                  <button class="primary-button" type="submit">Assign Task</button>
+                </div>
+              </form>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Employee Chat</p>
+                  <h3>Public and private communication</h3>
+                  <p class="section-copy">Use public chat for broad updates and private chat for employee-specific follow-up.</p>
+                </div>
+              </div>
+              <div class="chat-grid">
+                <div class="chat-column">
+                  <h4>Public chat</h4>
+                  <div class="chat-list" id="public-chat-list"></div>
+                  <form class="chat-form" id="public-chat-form">
+                    <textarea name="message" rows="3" placeholder="Post a public update to employees..." required></textarea>
+                    <button class="primary-button" type="submit">Send Public</button>
+                  </form>
+                </div>
+                <div class="chat-column">
+                  <h4>Private chat</h4>
+                  <div class="chat-list" id="private-chat-list"></div>
+                  <form class="chat-form" id="private-chat-form">
+                    <div class="chat-recipient" id="private-chat-recipient">No employee selected</div>
+                    <textarea name="message" rows="3" placeholder="Send a private message to the selected employee..." required></textarea>
+                    <button class="ghost-button" type="submit">Send Private</button>
+                  </form>
+                </div>
+              </div>
+            </section>
+
             <section class="panel">
               <div class="panel-header">
                 <div>
@@ -148,12 +300,12 @@
             await navigator.clipboard.writeText(prompt);
             button.textContent = "Prompt Copied";
             setTimeout(() => {
-              button.textContent = "Copy Lumofy Prompt";
+              button.textContent = "Copy Full Context";
             }, 1800);
           } catch (error) {
             button.textContent = "Copy Failed";
             setTimeout(() => {
-              button.textContent = "Copy Lumofy Prompt";
+              button.textContent = "Copy Full Context";
             }, 1800);
           }
         });

@@ -11,6 +11,7 @@ const SESSION_SECRET = "lumofy-preview";
 const publicDir = path.join(__dirname, "public");
 const loginHtmlPath = path.join(publicDir, "login.html");
 const accountsPath = path.join(__dirname, "data", "accounts.json");
+const employeeControlPath = path.join(__dirname, "data", "employee-control.json");
 const uploadsDir = path.join(publicDir, "uploads");
 const protectedHtmlRoutes = new Set([
   "/",
@@ -99,6 +100,118 @@ function buildPermissions(accessLevel) {
   };
 
   return permissionMap[accessLevel] || permissionMap.employee_access;
+}
+
+function getManagerPairs() {
+  return [
+    ["Mahmood Malik", "Ahmed Faraj"],
+    ["Hasan Baqer Alhashimi", "Mahmood Malik"],
+    ["Hussain AlSayyad", "Mahmood Malik"],
+    ["Safa Alfulaij", "Mahmood Malik"],
+    ["Shehab Mohamed ElHadi", "Mahmood Malik"],
+    ["Reem Sharar", "Mahmood Malik"],
+    ["Suzan Alkhriesat", "Mahmood Malik"],
+    ["Nouha Esmail", "Mahmood Malik"],
+    ["Mahmoud Elreweny", "Mahmood Malik"],
+    ["Sayed Jehad Saeed Hasan", "Mahmood Malik"],
+    ["Qasim AlShakhoori", "Mahmoud Elreweny"],
+    ["Fatima Almasoud", "Hussain AlSayyad"],
+    ["Rania Belal Mohammad Qasim", "Sara Mashrour"],
+    ["Sara Mashrour", "Hussain AlSayyad"],
+    ["Abdulrahman Mohamed AlTayeb", "Safa Alfulaij"],
+    ["Adel El Nabarawy", "Safa Alfulaij"],
+    ["Ahmad Hisham Yousif ElSayed", "Safa Alfulaij"],
+    ["Ahmed Ibrahim", "Safa Alfulaij"],
+    ["Ali Husain", "Safa Alfulaij"],
+    ["Assma Tawfik Ali Ben Mussa", "Safa Alfulaij"],
+    ["Mosses Oderinde", "Safa Alfulaij"],
+    ["Ahmed Abdelrahem elsagher", "Qasim AlShakhoori"],
+    ["Mohamed AbdulHadi Isa Shamlooh", "Qasim AlShakhoori"],
+    ["Zainab Abdulla Ali Haider Ali", "Ali Maki Isa Ahmed Abbas"],
+    ["Ali Maki Isa Ahmed Abbas", "Mahmoud Elreweny"],
+    ["Abdelrahman tarek", "Shehab Mohamed ElHadi"],
+    ["Mohamed Ahmed Mohamed Abel Wahab", "Shehab Mohamed ElHadi"],
+    ["Sayed Hussain Asaad Ali Almukhtar", "Reem Sharar"],
+    ["Tasneem ElGhareeb", "Reem Sharar"],
+    ["Mustafa Mahmood Asghar AbdulWahab", "Suzan Alkhriesat"],
+    ["Zahid Zaidi", "Suzan Alkhriesat"],
+    ["Eman Farag Ktob", "Nouha Esmail"],
+    ["Mary Ashraf", "Nouha Esmail"],
+    ["Mohammed Jaber", "Safa Alfulaij"],
+    ["Sayed Jehad Saeed Hasan", "Mahmood Malik"]
+  ];
+}
+
+function getManagerMapData() {
+  return new Map(getManagerPairs());
+}
+
+function buildDefaultEmployeeRecord(employee, index, accountsByName) {
+  const fullName = employee.fullName;
+  const slug = slugify(fullName);
+  const account = accountsByName.get(fullName);
+  const managerMap = getManagerMapData();
+  const defaultTaskDate = index % 2 === 0 ? "2026-07-24" : "2026-07-29";
+
+  return {
+    id: `emp-${slug}`,
+    fullName,
+    jobTitle: employee.jobTitle || "Unassigned Role",
+    department: employee.department || "Unassigned",
+    employmentStatus: employee.employmentStatus || "active",
+    manager: managerMap.get(fullName) || (fullName === "Ahmed Faraj" ? "Board / Founder" : "Ahmed Faraj"),
+    email: `${slug}@lumofy.com`,
+    phone: "",
+    cpr: "",
+    passport: "",
+    profileImage: account?.profileImage || DEFAULT_PROFILE_IMAGE,
+    attendance: {
+      clockedIn: false,
+      lastClockIn: null,
+      lastClockOut: null
+    },
+    assignedTasks: [
+      {
+        id: `task-${slug}-1`,
+        title: employee.employmentStatus === "new hire" ? "Complete onboarding setup review" : "Review current onboarding readiness",
+        owner: account?.displayName || fullName,
+        dueDate: defaultTaskDate,
+        status: employee.employmentStatus === "new hire" ? "in_progress" : "not_started"
+      }
+    ]
+  };
+}
+
+function buildDefaultEmployeeControl() {
+  const accounts = readAccounts();
+  const accountsByName = new Map(accounts.map((account) => [account.displayName, account]));
+
+  return {
+    employees: (sampleData.employees || []).map((employee, index) => buildDefaultEmployeeRecord(employee, index, accountsByName)),
+    publicMessages: [
+      {
+        id: `chat-public-${Date.now()}-1`,
+        author: "Hasan Baqer Alhashimi",
+        message: "HR queue refreshed. Please keep employee profile fields complete before Day 1.",
+        createdAt: "2026-07-22T07:45:00.000Z"
+      },
+      {
+        id: `chat-public-${Date.now()}-2`,
+        author: "Mohammed Jaber",
+        message: "Platform-side updates are live. Employee records, task assignment, and chat are now available in the control centre.",
+        createdAt: "2026-07-22T08:15:00.000Z"
+      }
+    ],
+    privateMessages: [
+      {
+        id: `chat-private-${Date.now()}-1`,
+        from: "Mohammed Jaber",
+        to: "Safa Alfulaij",
+        message: "I added the employee workspace controls. Review if any engineering-specific fields should be locked down.",
+        createdAt: "2026-07-22T08:20:00.000Z"
+      }
+    ]
+  };
 }
 
 function deriveAccessLevel(employee) {
@@ -219,6 +332,87 @@ function writeAccounts(accounts) {
   fs.writeFileSync(accountsPath, JSON.stringify(accounts, null, 2));
 }
 
+function ensureEmployeeControlFile() {
+  if (!fs.existsSync(employeeControlPath)) {
+    fs.writeFileSync(employeeControlPath, JSON.stringify(buildDefaultEmployeeControl(), null, 2));
+  }
+}
+
+function normalizeEmployeeRecord(record, accountsByName) {
+  const account = accountsByName.get(record.fullName);
+  return {
+    id: record.id || `emp-${slugify(record.fullName)}`,
+    fullName: record.fullName,
+    jobTitle: record.jobTitle || "Unassigned Role",
+    department: record.department || "Unassigned",
+    employmentStatus: record.employmentStatus || "active",
+    manager: record.manager || (getManagerMapData().get(record.fullName) || "Ahmed Faraj"),
+    email: record.email || `${slugify(record.fullName)}@lumofy.com`,
+    phone: record.phone || "",
+    cpr: record.cpr || "",
+    passport: record.passport || "",
+    profileImage: record.profileImage || account?.profileImage || DEFAULT_PROFILE_IMAGE,
+    attendance: {
+      clockedIn: Boolean(record.attendance?.clockedIn),
+      lastClockIn: record.attendance?.lastClockIn || null,
+      lastClockOut: record.attendance?.lastClockOut || null
+    },
+    assignedTasks: Array.isArray(record.assignedTasks)
+      ? record.assignedTasks.map((task, index) => ({
+          id: task.id || `task-${slugify(record.fullName)}-${index + 1}`,
+          title: task.title || "Untitled Task",
+          owner: task.owner || record.fullName,
+          dueDate: task.dueDate || "2026-07-29",
+          status: task.status || "not_started"
+        }))
+      : []
+  };
+}
+
+function syncEmployeeControlState(state) {
+  const accounts = readAccounts();
+  const accountsByName = new Map(accounts.map((account) => [account.displayName, account]));
+  const existingByName = new Map((state.employees || []).map((employee) => [employee.fullName, employee]));
+  const employees = (sampleData.employees || []).map((employee, index) => {
+    const existing = existingByName.get(employee.fullName);
+    const base = existing || buildDefaultEmployeeRecord(employee, index, accountsByName);
+    return normalizeEmployeeRecord(
+      {
+        ...base,
+        fullName: employee.fullName,
+        jobTitle: base.jobTitle || employee.jobTitle,
+        department: base.department || employee.department,
+        employmentStatus: base.employmentStatus || employee.employmentStatus
+      },
+      accountsByName
+    );
+  });
+
+  const customEmployees = (state.employees || [])
+    .filter((employee) => !(sampleData.employees || []).find((item) => item.fullName === employee.fullName))
+    .map((employee) => normalizeEmployeeRecord(employee, accountsByName));
+
+  return {
+    employees: [...employees, ...customEmployees].sort((a, b) => a.fullName.localeCompare(b.fullName)),
+    publicMessages: Array.isArray(state.publicMessages) ? state.publicMessages : [],
+    privateMessages: Array.isArray(state.privateMessages) ? state.privateMessages : []
+  };
+}
+
+function readEmployeeControl() {
+  ensureEmployeeControlFile();
+  const state = JSON.parse(fs.readFileSync(employeeControlPath, "utf8"));
+  const normalized = syncEmployeeControlState(state);
+  if (JSON.stringify(state) !== JSON.stringify(normalized)) {
+    writeEmployeeControl(normalized);
+  }
+  return normalized;
+}
+
+function writeEmployeeControl(state) {
+  fs.writeFileSync(employeeControlPath, JSON.stringify(state, null, 2));
+}
+
 function ensureUploadsDir() {
   if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
@@ -253,6 +447,13 @@ function readBody(req) {
 function parseFormBody(body) {
   const params = new URLSearchParams(body);
   return Object.fromEntries(params.entries());
+}
+
+function parseJsonBody(body) {
+  if (!body) {
+    return {};
+  }
+  return JSON.parse(body);
 }
 
 function parseMultipart(req) {
@@ -447,6 +648,7 @@ function getDashboardStats(plans) {
 }
 
 function buildAppPayload(session) {
+  const employeeControl = readEmployeeControl();
   const accounts = readAccounts();
   const account = accounts.find((entry) => entry.id === session?.accountId) || null;
   const engagement = account ? getAccountEngagement(account) : { rankEntry: null, featuredGames: [] };
@@ -470,7 +672,9 @@ function buildAppPayload(session) {
           game: engagement.rankEntry ? engagement.rankEntry.game : null
         }
       : null,
-    ...sampleData
+    employeeControl,
+    ...sampleData,
+    employees: employeeControl.employees
   };
 }
 
@@ -538,7 +742,8 @@ function buildTopbarAccount(session) {
 }
 
 function buildClaudeContext(session) {
-  const employees = sampleData.employees || [];
+  const employeeControl = readEmployeeControl();
+  const employees = employeeControl.employees || sampleData.employees || [];
   const plans = sampleData.plans || [];
   const summaryCards = sampleData.summaryCards || [];
   const games = sampleData.engagement?.games || [];
@@ -1028,6 +1233,241 @@ const server = http.createServer((req, res) => {
 
   if (requestUrl.pathname === "/api/onboarding") {
     sendJson(res, 200, buildAppPayload(getSession(req)));
+    return;
+  }
+
+  if (requestUrl.pathname === "/api/employees" && req.method === "POST") {
+    const session = getSession(req);
+    if (!session) {
+      sendJson(res, 401, { error: "Unauthorized" });
+      return;
+    }
+
+    readBody(req)
+      .then((body) => {
+        const payload = parseJsonBody(body || "");
+        const fullName = String(payload.fullName || "").trim();
+        if (!fullName) {
+          sendJson(res, 400, { error: "Employee name is required" });
+          return;
+        }
+
+        const control = readEmployeeControl();
+        const id = `emp-${slugify(fullName)}`;
+        if (control.employees.find((employee) => employee.id === id || employee.fullName === fullName)) {
+          sendJson(res, 409, { error: "Employee already exists" });
+          return;
+        }
+
+        control.employees.push(
+          normalizeEmployeeRecord(
+            {
+              id,
+              fullName,
+              jobTitle: String(payload.jobTitle || "Unassigned Role").trim(),
+              department: String(payload.department || "Unassigned").trim(),
+              employmentStatus: String(payload.employmentStatus || "new hire").trim(),
+              manager: String(payload.manager || "Ahmed Faraj").trim(),
+              email: String(payload.email || `${slugify(fullName)}@lumofy.com`).trim(),
+              phone: String(payload.phone || "").trim(),
+              cpr: String(payload.cpr || "").trim(),
+              passport: String(payload.passport || "").trim(),
+              assignedTasks: [],
+              attendance: {
+                clockedIn: false,
+                lastClockIn: null,
+                lastClockOut: null
+              }
+            },
+            new Map(readAccounts().map((account) => [account.displayName, account]))
+          )
+        );
+        writeEmployeeControl(control);
+        sendJson(res, 200, buildAppPayload(session));
+      })
+      .catch(() => {
+        sendJson(res, 400, { error: "Invalid request body" });
+      });
+    return;
+  }
+
+  const employeeUpdateMatch = requestUrl.pathname.match(/^\/api\/employees\/([^/]+)\/update$/);
+  if (employeeUpdateMatch && req.method === "POST") {
+    const session = getSession(req);
+    if (!session) {
+      sendJson(res, 401, { error: "Unauthorized" });
+      return;
+    }
+
+    readBody(req)
+      .then((body) => {
+        const payload = parseJsonBody(body || "");
+        const control = readEmployeeControl();
+        const employee = control.employees.find((entry) => entry.id === employeeUpdateMatch[1]);
+        if (!employee) {
+          sendJson(res, 404, { error: "Employee not found" });
+          return;
+        }
+
+        employee.jobTitle = String(payload.jobTitle || employee.jobTitle).trim() || employee.jobTitle;
+        employee.manager = String(payload.manager || employee.manager).trim() || employee.manager;
+        employee.email = String(payload.email || employee.email).trim() || employee.email;
+        employee.phone = String(payload.phone || employee.phone).trim();
+        employee.cpr = String(payload.cpr || employee.cpr).trim();
+        employee.passport = String(payload.passport || employee.passport).trim();
+        writeEmployeeControl(control);
+        sendJson(res, 200, buildAppPayload(session));
+      })
+      .catch(() => {
+        sendJson(res, 400, { error: "Invalid request body" });
+      });
+    return;
+  }
+
+  const employeeTaskMatch = requestUrl.pathname.match(/^\/api\/employees\/([^/]+)\/tasks$/);
+  if (employeeTaskMatch && req.method === "POST") {
+    const session = getSession(req);
+    if (!session) {
+      sendJson(res, 401, { error: "Unauthorized" });
+      return;
+    }
+
+    readBody(req)
+      .then((body) => {
+        const payload = parseJsonBody(body || "");
+        const title = String(payload.title || "").trim();
+        if (!title) {
+          sendJson(res, 400, { error: "Task title is required" });
+          return;
+        }
+
+        const control = readEmployeeControl();
+        const employee = control.employees.find((entry) => entry.id === employeeTaskMatch[1]);
+        if (!employee) {
+          sendJson(res, 404, { error: "Employee not found" });
+          return;
+        }
+
+        employee.assignedTasks.unshift({
+          id: `task-${employee.id}-${Date.now()}`,
+          title,
+          owner: session.displayName,
+          dueDate: String(payload.dueDate || "2026-07-29").trim(),
+          status: String(payload.status || "not_started").trim()
+        });
+        writeEmployeeControl(control);
+        sendJson(res, 200, buildAppPayload(session));
+      })
+      .catch(() => {
+        sendJson(res, 400, { error: "Invalid request body" });
+      });
+    return;
+  }
+
+  const employeeClockMatch = requestUrl.pathname.match(/^\/api\/employees\/([^/]+)\/clock$/);
+  if (employeeClockMatch && req.method === "POST") {
+    const session = getSession(req);
+    if (!session) {
+      sendJson(res, 401, { error: "Unauthorized" });
+      return;
+    }
+
+    readBody(req)
+      .then((body) => {
+        const payload = parseJsonBody(body || "");
+        const action = String(payload.action || "").trim();
+        const control = readEmployeeControl();
+        const employee = control.employees.find((entry) => entry.id === employeeClockMatch[1]);
+        if (!employee) {
+          sendJson(res, 404, { error: "Employee not found" });
+          return;
+        }
+
+        if (action === "clock_in") {
+          employee.attendance.clockedIn = true;
+          employee.attendance.lastClockIn = new Date().toISOString();
+        } else if (action === "clock_out") {
+          employee.attendance.clockedIn = false;
+          employee.attendance.lastClockOut = new Date().toISOString();
+        } else {
+          sendJson(res, 400, { error: "Unknown clock action" });
+          return;
+        }
+
+        writeEmployeeControl(control);
+        sendJson(res, 200, buildAppPayload(session));
+      })
+      .catch(() => {
+        sendJson(res, 400, { error: "Invalid request body" });
+      });
+    return;
+  }
+
+  if (requestUrl.pathname === "/api/chat/public" && req.method === "POST") {
+    const session = getSession(req);
+    if (!session) {
+      sendJson(res, 401, { error: "Unauthorized" });
+      return;
+    }
+
+    readBody(req)
+      .then((body) => {
+        const payload = parseJsonBody(body || "");
+        const message = String(payload.message || "").trim();
+        if (!message) {
+          sendJson(res, 400, { error: "Message is required" });
+          return;
+        }
+
+        const control = readEmployeeControl();
+        control.publicMessages.unshift({
+          id: `chat-public-${Date.now()}`,
+          author: session.displayName,
+          message,
+          createdAt: new Date().toISOString()
+        });
+        control.publicMessages = control.publicMessages.slice(0, 40);
+        writeEmployeeControl(control);
+        sendJson(res, 200, buildAppPayload(session));
+      })
+      .catch(() => {
+        sendJson(res, 400, { error: "Invalid request body" });
+      });
+    return;
+  }
+
+  if (requestUrl.pathname === "/api/chat/private" && req.method === "POST") {
+    const session = getSession(req);
+    if (!session) {
+      sendJson(res, 401, { error: "Unauthorized" });
+      return;
+    }
+
+    readBody(req)
+      .then((body) => {
+        const payload = parseJsonBody(body || "");
+        const to = String(payload.to || "").trim();
+        const message = String(payload.message || "").trim();
+        if (!to || !message) {
+          sendJson(res, 400, { error: "Recipient and message are required" });
+          return;
+        }
+
+        const control = readEmployeeControl();
+        control.privateMessages.unshift({
+          id: `chat-private-${Date.now()}`,
+          from: session.displayName,
+          to,
+          message,
+          createdAt: new Date().toISOString()
+        });
+        control.privateMessages = control.privateMessages.slice(0, 60);
+        writeEmployeeControl(control);
+        sendJson(res, 200, buildAppPayload(session));
+      })
+      .catch(() => {
+        sendJson(res, 400, { error: "Invalid request body" });
+      });
     return;
   }
 
