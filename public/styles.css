@@ -1127,22 +1127,88 @@ tbody tr.is-selected {
 }
 
 .role-tree-root {
-  overflow-x: auto;
+  overflow: auto;
+  padding: 6px 4px 10px;
 }
 
-.role-tree-level {
+.org-chart-level {
+  position: relative;
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  gap: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  min-width: max-content;
 }
 
-.role-tree-level .role-tree-level {
-  margin-top: 10px;
-  margin-left: 18px;
-  padding-left: 14px;
-  border-left: 2px solid var(--line);
+.org-chart-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 8px;
+}
+
+.org-chart-card {
+  display: grid;
+  gap: 4px;
+  min-width: 190px;
+  max-width: 220px;
+  text-align: center;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  box-shadow: 0 8px 22px rgba(17, 24, 39, 0.05);
+}
+
+.org-chart-item.has-children::before {
+  content: "";
+  width: 2px;
+  height: 18px;
+  background: var(--line-strong);
+  margin-top: 2px;
+}
+
+.org-chart-children {
+  position: relative;
+  margin-top: 18px;
+  padding-top: 18px;
+}
+
+.org-chart-children::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 18px;
+  background: var(--line-strong);
+  transform: translateX(-50%);
+}
+
+.org-chart-children > .org-chart-level::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: var(--line-strong);
+}
+
+.org-chart-level > .org-chart-item::before {
+  content: "";
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  width: 2px;
+  height: 18px;
+  background: var(--line-strong);
+  transform: translateX(-50%);
+}
+
+.org-chart-level:first-child > .org-chart-item::before {
+  display: none;
 }
 
 .role-node {
@@ -1152,11 +1218,18 @@ tbody tr.is-selected {
 }
 
 .role-title {
-  font-size: 1rem;
+  font-size: 0.86rem;
+  color: var(--muted);
 }
 
 .role-name {
-  color: var(--muted);
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.role-meta {
+  font-size: 0.76rem;
+  color: var(--muted-soft);
 }
 
 code {

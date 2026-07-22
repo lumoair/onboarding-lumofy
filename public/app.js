@@ -751,16 +751,17 @@ function renderRoleTree(nodes) {
 
   function renderNodes(items) {
     return `
-      <ul class="role-tree-level">
+      <ul class="org-chart-level">
         ${items
           .map(
             (item) => `
-              <li>
-                <article class="role-node">
-                  <strong class="role-title">${item.title}</strong>
-                  <span class="role-name">${item.name}</span>
+              <li class="org-chart-item ${item.children && item.children.length ? "has-children" : "is-leaf"}">
+                <article class="role-node org-chart-card">
+                  <strong class="role-name">${item.name}</strong>
+                  <span class="role-title">${item.title}</span>
+                  <span class="role-meta">${item.children && item.children.length ? `${item.children.length} direct report${item.children.length === 1 ? "" : "s"}` : "Individual contributor"}</span>
                 </article>
-                ${item.children && item.children.length ? renderNodes(item.children) : ""}
+                ${item.children && item.children.length ? `<div class="org-chart-children">${renderNodes(item.children)}</div>` : ""}
               </li>
             `
           )
