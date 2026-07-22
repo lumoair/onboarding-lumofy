@@ -11,6 +11,7 @@ const SESSION_SECRET = "lumofy-preview";
 const publicDir = path.join(__dirname, "public");
 const loginHtmlPath = path.join(publicDir, "login.html");
 const accountsPath = path.join(__dirname, "data", "accounts.json");
+const uploadsDir = path.join(publicDir, "uploads");
 const protectedHtmlRoutes = new Set([
   "/",
   "/index.html",
@@ -112,6 +113,12 @@ function writeAccounts(accounts) {
   fs.writeFileSync(accountsPath, JSON.stringify(accounts, null, 2));
 }
 
+function ensureUploadsDir() {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+}
+
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, {
     "Content-Type": "application/json; charset=utf-8",
@@ -140,6 +147,78 @@ function readBody(req) {
 function parseFormBody(body) {
   const params = new URLSearchParams(body);
   return Object.fromEntries(params.entries());
+}
+
+function parseMultipart(req) {
+  return new Promise((resolve, reject) => {
+    const contentType = req.headers["content-type"] || "";
+    const match = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
+    if (!match) {
+      reject(new Error("Missing multipart boundary"));
+      return;
+    }
+
+    const boundary = `--${match[1] || match[2]}`;
+    const chunks = [];
+
+    req.on("data", (chunk) => {
+      chunks.push(chunk);
+      const total = chunks.reduce((sum, item) => sum + item.length, 0);
+      if (total > 10 * 1024 * 1024) {
+        reject(new Error("Multipart body too large"));
+        req.destroy();
+      }
+    });
+
+    req.on("end", () => {
+      const buffer = Buffer.concat(chunks);
+      const parts = buffer.toString("binary").split(boundary).slice(1, -1);
+      const fields = {};
+      const files = [];
+
+      parts.forEach((part) => {
+        const trimmed = part.replace(/^\r\n/, "").replace(/\r\n$/, "");
+        const headerEnd = trimmed.indexOf("\r\n\r\n");
+        if (headerEnd === -1) {
+          return;
+        }
+
+        const headerText = trimmed.slice(0, headerEnd);
+        const bodyBinary = trimmed.slice(headerEnd + 4);
+        const dispositionLine = headerText
+          .split("\r\n")
+          .find((line) => line.toLowerCase().startsWith("content-disposition"));
+
+        if (!dispositionLine) {
+          return;
+        }
+
+        const nameMatch = dispositionLine.match(/name="([^"]+)"/i);
+        const filenameMatch = dispositionLine.match(/filename="([^"]*)"/i);
+        const typeLine = headerText
+          .split("\r\n")
+          .find((line) => line.toLowerCase().startsWith("content-type"));
+
+        const name = nameMatch ? nameMatch[1] : "";
+        const bodyBuffer = Buffer.from(bodyBinary, "binary");
+
+        if (filenameMatch && filenameMatch[1]) {
+          files.push({
+            fieldName: name,
+            filename: filenameMatch[1],
+            contentType: typeLine ? typeLine.split(":")[1].trim() : "application/octet-stream",
+            buffer: bodyBuffer
+          });
+        } else {
+          fields[name] = bodyBuffer.toString("utf8");
+        }
+      });
+
+      resolve({ fields, files });
+    });
+
+    req.on("error", reject);
+  });
 }
 
 function parseCookies(req) {
@@ -287,6 +366,7 @@ function buildAppPayload(session) {
 
 function buildAccountPanel(session, query, pathname) {
   const success = query.get("account") === "updated";
+  const avatarUploaded = query.get("avatar") === "updated";
   return `
     <div class="account-panel">
       <p class="eyebrow">Signed In</p>
@@ -299,6 +379,7 @@ function buildAccountPanel(session, query, pathname) {
         </div>
       </div>
       ${success ? '<p class="account-success">Account details updated.</p>' : ""}
+      ${avatarUploaded ? '<p class="account-success">Profile picture updated.</p>' : ""}
       <form class="account-form" method="post" action="/account/update">
         <input type="hidden" name="from" value="${escapeHtml(pathname || "/")}" />
         <label class="field">
@@ -314,6 +395,14 @@ function buildAccountPanel(session, query, pathname) {
           <input name="profileImage" type="url" value="${escapeHtml(session.profileImage || DEFAULT_PROFILE_IMAGE)}" required />
         </label>
         <button class="primary-button account-save" type="submit">Save account</button>
+      </form>
+      <form class="account-form" method="post" action="/account/upload-avatar" enctype="multipart/form-data">
+        <input type="hidden" name="from" value="${escapeHtml(pathname || "/")}" />
+        <label class="field">
+          <span>Upload profile picture</span>
+          <input name="avatar" type="file" accept="image/png,image/jpeg,image/webp,image/gif" required />
+        </label>
+        <button class="ghost-button account-save" type="submit">Upload picture</button>
       </form>
       <form method="post" action="/logout">
         <button class="secondary-button" type="submit">Log Out</button>
@@ -597,6 +686,67 @@ const server = http.createServer((req, res) => {
         const normalizedFrom = `/${String(from).replace(/^\//, "")}`.replace("//", "/");
         const backTo = protectedHtmlRoutes.has(normalizedFrom) ? normalizedFrom : "/";
         res.writeHead(303, { Location: `${backTo}?account=updated` });
+        res.end();
+      })
+      .catch(() => {
+        res.writeHead(303, { Location: "/?account=error" });
+        res.end();
+      });
+    return;
+  }
+
+  if (requestUrl.pathname === "/account/upload-avatar" && req.method === "POST") {
+    const session = getSession(req);
+    if (!session) {
+      res.writeHead(303, { Location: "/login" });
+      res.end();
+      return;
+    }
+
+    parseMultipart(req)
+      .then(({ fields, files }) => {
+        const file = files.find((entry) => entry.fieldName === "avatar");
+        const normalizedFrom = `/${String(fields.from || "").replace(/^\//, "")}`.replace("//", "/");
+        const backTo = protectedHtmlRoutes.has(normalizedFrom) ? normalizedFrom : "/";
+
+        if (!file || !file.buffer.length) {
+          res.writeHead(303, { Location: `${backTo}?account=error` });
+          res.end();
+          return;
+        }
+
+        const allowedTypes = new Map([
+          ["image/png", ".png"],
+          ["image/jpeg", ".jpg"],
+          ["image/webp", ".webp"],
+          ["image/gif", ".gif"]
+        ]);
+        const ext = allowedTypes.get(file.contentType);
+        if (!ext) {
+          res.writeHead(303, { Location: `${backTo}?account=error` });
+          res.end();
+          return;
+        }
+
+        ensureUploadsDir();
+        const filename = `${session.accountId}-${Date.now()}${ext}`;
+        fs.writeFileSync(path.join(uploadsDir, filename), file.buffer);
+
+        const accounts = readAccounts();
+        const index = accounts.findIndex((entry) => entry.id === session.accountId);
+        if (index === -1) {
+          res.writeHead(303, { Location: `${backTo}?account=error` });
+          res.end();
+          return;
+        }
+
+        accounts[index] = {
+          ...accounts[index],
+          profileImage: `/uploads/${filename}`
+        };
+        writeAccounts(accounts);
+        setSessionCookie(res, session.accountId);
+        res.writeHead(303, { Location: `${backTo}?avatar=updated` });
         res.end();
       })
       .catch(() => {
