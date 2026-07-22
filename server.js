@@ -56,12 +56,85 @@ function hashSession(accountId) {
     .digest("hex");
 }
 
+function buildPermissions(accessLevel) {
+  const permissionMap = {
+    full_access: [
+      "dashboard:view",
+      "employees:view",
+      "tree:view",
+      "plans:view",
+      "plans:edit",
+      "plans:create",
+      "engagement:view",
+      "accounts:edit",
+      "reports:view",
+      "admin:manage"
+    ],
+    hr_admin: [
+      "dashboard:view",
+      "employees:view",
+      "tree:view",
+      "plans:view",
+      "plans:edit",
+      "plans:create",
+      "engagement:view",
+      "accounts:edit",
+      "reports:view"
+    ],
+    manager_access: [
+      "dashboard:view",
+      "employees:view",
+      "tree:view",
+      "plans:view",
+      "plans:edit",
+      "engagement:view",
+      "accounts:edit"
+    ],
+    employee_access: [
+      "dashboard:view",
+      "plans:view",
+      "engagement:view",
+      "accounts:edit"
+    ]
+  };
+
+  return permissionMap[accessLevel] || permissionMap.employee_access;
+}
+
+function deriveAccessLevel(employee) {
+  const role = String(employee.jobTitle || "").toLowerCase();
+  const department = String(employee.department || "").toLowerCase();
+  const name = String(employee.fullName || "").toLowerCase();
+
+  if (name === "ahmed faraj" || name === "mahmood malik") {
+    return "full_access";
+  }
+
+  if (department.includes("people") || role.includes("hr")) {
+    return "hr_admin";
+  }
+
+  if (
+    role.includes("lead") ||
+    role.includes("director") ||
+    role.includes("manager") ||
+    role.includes("founder") ||
+    role.includes("cofounder") ||
+    role.includes("coo")
+  ) {
+    return "manager_access";
+  }
+
+  return "employee_access";
+}
+
 function buildDefaultAccounts() {
   const accountMap = new Map();
 
   (sampleData.employees || []).forEach((employee, index) => {
     const id = `acct-${String(index + 1).padStart(3, "0")}`;
     const displayName = employee.fullName;
+    const accessLevel = deriveAccessLevel(employee);
     accountMap.set(displayName, {
       id,
       displayName,
@@ -69,7 +142,9 @@ function buildDefaultAccounts() {
       password: "user",
       profileImage: DEFAULT_PROFILE_IMAGE,
       department: employee.department || "Unassigned",
-      role: employee.jobTitle || "Unassigned Role"
+      role: employee.jobTitle || "Unassigned Role",
+      accessLevel,
+      permissions: buildPermissions(accessLevel)
     });
   });
 
@@ -82,9 +157,23 @@ function buildDefaultAccounts() {
         password: "user",
         profileImage: DEFAULT_PROFILE_IMAGE,
         department: "Unassigned",
-        role: "Lumofy Team Member"
+        role: "Lumofy Team Member",
+        accessLevel: "employee_access",
+        permissions: buildPermissions("employee_access")
       });
     }
+  });
+
+  accountMap.set("Mohammed (atlas)", {
+    id: `acct-${String(accountMap.size + 1).padStart(3, "0")}`,
+    displayName: "Mohammed (atlas)",
+    username: "mohammed-atlas",
+    password: "user",
+    profileImage: DEFAULT_PROFILE_IMAGE,
+    department: "Engineering",
+    role: "Platform Developer",
+    accessLevel: "full_access",
+    permissions: buildPermissions("full_access")
   });
 
   return Array.from(accountMap.values());
@@ -101,8 +190,25 @@ function readAccounts() {
   const accounts = JSON.parse(fs.readFileSync(accountsPath, "utf8"));
   const normalized = accounts.map((account) => ({
     ...account,
-    profileImage: account.profileImage || DEFAULT_PROFILE_IMAGE
+    profileImage: account.profileImage || DEFAULT_PROFILE_IMAGE,
+    accessLevel: account.accessLevel || "employee_access",
+    permissions: Array.isArray(account.permissions)
+      ? account.permissions
+      : buildPermissions(account.accessLevel || "employee_access")
   }));
+  if (!normalized.find((account) => account.displayName === "Mohammed (atlas)")) {
+    normalized.push({
+      id: `acct-${String(normalized.length + 1).padStart(3, "0")}`,
+      displayName: "Mohammed (atlas)",
+      username: "mohammed-atlas",
+      password: "user",
+      profileImage: DEFAULT_PROFILE_IMAGE,
+      department: "Engineering",
+      role: "Platform Developer",
+      accessLevel: "full_access",
+      permissions: buildPermissions("full_access")
+    });
+  }
   if (JSON.stringify(accounts) !== JSON.stringify(normalized)) {
     writeAccounts(normalized);
   }
@@ -257,7 +363,9 @@ function getSession(req) {
     displayName: account.displayName,
     profileImage: account.profileImage,
     department: account.department,
-    role: account.role
+    role: account.role,
+    accessLevel: account.accessLevel,
+    permissions: account.permissions
   };
 }
 
@@ -355,6 +463,8 @@ function buildAppPayload(session) {
           department: account.department,
           role: account.role,
           profileImage: account.profileImage,
+          accessLevel: account.accessLevel,
+          permissions: account.permissions,
           rank: engagement.rankEntry ? engagement.rankEntry.rank : null,
           elo: engagement.rankEntry ? engagement.rankEntry.elo : null,
           game: engagement.rankEntry ? engagement.rankEntry.game : null
@@ -376,6 +486,7 @@ function buildAccountPanel(session, query, pathname) {
           <strong class="account-name">${escapeHtml(session.displayName)}</strong>
           <p class="account-meta">${escapeHtml(session.role || "Lumofy User")}</p>
           <p class="account-meta">@${escapeHtml(session.username)}</p>
+          <p class="account-meta">${escapeHtml(String(session.accessLevel || "employee_access").replaceAll("_", " "))}</p>
         </div>
       </div>
       ${success ? '<p class="account-success">Account details updated.</p>' : ""}
