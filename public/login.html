@@ -3,36 +3,47 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lumofy Onboarding Control Centre</title>
+    <title>Lumofy Account Login</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/styles.css?v=20260720m" />
+    <link rel="stylesheet" href="/styles.css?v=20260722a" />
   </head>
   <body>
     <div class="auth-shell auth-shell-page">
-      <section class="auth-card">
-        <p class="eyebrow">Lumofy Access</p>
-        <h2>Sign in to the onboarding control centre</h2>
-        <p class="auth-copy">
-          This preview uses a temporary server-side sign-in. Enter the credentials below to open the dashboard.
-        </p>
-        <form class="auth-form" method="post" action="/login">
-          <label class="field">
-            <span>Username</span>
-            <input id="username" name="username" type="text" autocomplete="username" required />
-          </label>
-          <label class="field">
-            <span>Password</span>
-            <input id="password" name="password" type="password" autocomplete="current-password" required />
-          </label>
-          <button class="primary-button" type="submit">Sign In</button>
-          <p class="auth-hint">Temporary credentials: <strong>user</strong> / <strong>user</strong></p>
-          <p class="auth-error" id="auth-error" hidden>Invalid username or password</p>
-        </form>
+      <section class="auth-card auth-card-wide">
+        <div class="auth-grid">
+          <div class="auth-column">
+            <p class="eyebrow">Lumofy Access</p>
+            <h2>Pick a user, then enter a password.</h2>
+            <p class="auth-copy">
+              This preview now uses per-user login. Choose an employee account, enter that account password, and sign in.
+            </p>
+            <form class="auth-form" method="post" action="/login">
+              <div class="login-user-list">
+                __LOGIN_USER_OPTIONS__
+              </div>
+              <label class="field">
+                <span>Password</span>
+                <input id="password" name="password" type="password" autocomplete="current-password" required />
+              </label>
+              <button class="primary-button" type="submit">Sign In</button>
+              <p class="auth-hint">Default password for every imported account: <strong>user</strong></p>
+              <p class="auth-error" id="auth-error" hidden>That password does not match the selected user.</p>
+            </form>
+          </div>
+
+          <div class="auth-column auth-sidebar">
+            <p class="eyebrow">Engagement Snapshot</p>
+            <h3>Leaderboard right now</h3>
+            <div class="stack" id="login-leaderboard-list">
+              __LOGIN_LEADERBOARD__
+            </div>
+          </div>
+        </div>
       </section>
     </div>
     <script>

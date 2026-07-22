@@ -7,15 +7,10 @@ const { URL } = require("url");
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || (process.env.RENDER ? "0.0.0.0" : "127.0.0.1");
 const AUTH_COOKIE = "lumofy_session";
-const VALID_USERNAME = "user";
-const VALID_PASSWORD = "user";
-const AUTH_TOKEN = crypto
-  .createHash("sha256")
-  .update(`${VALID_USERNAME}:${VALID_PASSWORD}:lumofy-preview`)
-  .digest("hex");
+const SESSION_SECRET = "lumofy-preview";
 const publicDir = path.join(__dirname, "public");
-const appHtmlPath = path.join(publicDir, "index.html");
 const loginHtmlPath = path.join(publicDir, "login.html");
+const accountsPath = path.join(__dirname, "data", "accounts.json");
 const protectedHtmlRoutes = new Set([
   "/",
   "/index.html",
@@ -27,6 +22,7 @@ const protectedHtmlRoutes = new Set([
 const sampleData = JSON.parse(
   fs.readFileSync(path.join(__dirname, "data", "sample-data.json"), "utf8")
 );
+const DEFAULT_PROFILE_IMAGE = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Default_pfp.jpg/250px-Default_pfp.jpg";
 const deploymentInfo = {
   commit: (process.env.RENDER_GIT_COMMIT || process.env.COMMIT_SHA || "local").slice(0, 7),
   branch: process.env.RENDER_GIT_BRANCH || process.env.BRANCH || "local",
@@ -43,6 +39,78 @@ const mimeTypes = {
   ".jpg": "image/jpeg",
   ".ico": "image/x-icon"
 };
+
+function slugify(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "user";
+}
+
+function hashSession(accountId) {
+  return crypto
+    .createHash("sha256")
+    .update(`${accountId}:${SESSION_SECRET}`)
+    .digest("hex");
+}
+
+function buildDefaultAccounts() {
+  const accountMap = new Map();
+
+  (sampleData.employees || []).forEach((employee, index) => {
+    const id = `acct-${String(index + 1).padStart(3, "0")}`;
+    const displayName = employee.fullName;
+    accountMap.set(displayName, {
+      id,
+      displayName,
+      username: slugify(displayName),
+      password: "user",
+      profileImage: DEFAULT_PROFILE_IMAGE,
+      department: employee.department || "Unassigned",
+      role: employee.jobTitle || "Unassigned Role"
+    });
+  });
+
+  (sampleData.engagement?.leaderboard || []).forEach((entry) => {
+    if (!accountMap.has(entry.name)) {
+      accountMap.set(entry.name, {
+        id: `acct-${String(accountMap.size + 1).padStart(3, "0")}`,
+        displayName: entry.name,
+        username: slugify(entry.name),
+        password: "user",
+        profileImage: DEFAULT_PROFILE_IMAGE,
+        department: "Unassigned",
+        role: "Lumofy Team Member"
+      });
+    }
+  });
+
+  return Array.from(accountMap.values());
+}
+
+function ensureAccountsFile() {
+  if (!fs.existsSync(accountsPath)) {
+    fs.writeFileSync(accountsPath, JSON.stringify(buildDefaultAccounts(), null, 2));
+  }
+}
+
+function readAccounts() {
+  ensureAccountsFile();
+  const accounts = JSON.parse(fs.readFileSync(accountsPath, "utf8"));
+  const normalized = accounts.map((account) => ({
+    ...account,
+    profileImage: account.profileImage || DEFAULT_PROFILE_IMAGE
+  }));
+  if (JSON.stringify(accounts) !== JSON.stringify(normalized)) {
+    writeAccounts(normalized);
+  }
+  return normalized;
+}
+
+function writeAccounts(accounts) {
+  fs.writeFileSync(accountsPath, JSON.stringify(accounts, null, 2));
+}
 
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, {
@@ -71,10 +139,7 @@ function readBody(req) {
 
 function parseFormBody(body) {
   const params = new URLSearchParams(body);
-  return {
-    username: params.get("username") || "",
-    password: params.get("password") || ""
-  };
+  return Object.fromEntries(params.entries());
 }
 
 function parseCookies(req) {
@@ -93,20 +158,36 @@ function parseCookies(req) {
 function getSession(req) {
   const cookies = parseCookies(req);
   const token = cookies[AUTH_COOKIE];
-  if (token !== AUTH_TOKEN) {
+  if (!token) {
+    return null;
+  }
+
+  const [accountId, signature] = token.split(".");
+  if (!accountId || signature !== hashSession(accountId)) {
+    return null;
+  }
+
+  const account = readAccounts().find((entry) => entry.id === accountId);
+  if (!account) {
     return null;
   }
 
   return {
-    username: VALID_USERNAME
+    accountId: account.id,
+    username: account.username,
+    displayName: account.displayName,
+    profileImage: account.profileImage,
+    department: account.department,
+    role: account.role
   };
 }
 
-function setSessionCookie(res) {
+function setSessionCookie(res, accountId) {
   const isSecure = process.env.RENDER ? "; Secure" : "";
+  const token = `${accountId}.${hashSession(accountId)}`;
   res.setHeader(
     "Set-Cookie",
-    `${AUTH_COOKIE}=${AUTH_TOKEN}; Path=/; HttpOnly; SameSite=Lax${isSecure}; Max-Age=86400`
+    `${AUTH_COOKIE}=${token}; Path=/; HttpOnly; SameSite=Lax${isSecure}; Max-Age=86400`
   );
 }
 
@@ -115,11 +196,6 @@ function clearSessionCookie(res) {
     "Set-Cookie",
     `${AUTH_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`
   );
-}
-
-function sendUnauthorized(res) {
-  res.writeHead(303, { Location: "/login" });
-  res.end();
 }
 
 function serveFile(filePath, res) {
@@ -139,35 +215,25 @@ function serveFile(filePath, res) {
   });
 }
 
-function buildAppPayload() {
-  return {
-    generatedAt: new Date().toISOString(),
-    deployment: deploymentInfo,
-    stats: getDashboardStats(sampleData.plans),
-    ...sampleData
-  };
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
-function serveAppPage(filePath, res) {
-  fs.readFile(filePath, "utf8", (error, content) => {
-    if (error) {
-      res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
-      res.end("Not found");
-      return;
-    }
+function getAccountEngagement(account) {
+  const leaderboard = sampleData.engagement?.leaderboard || [];
+  const games = sampleData.engagement?.games || [];
+  const rankEntry = leaderboard.find((entry) => entry.name === account.displayName);
+  const featuredGames = games.filter((game) => game.name === rankEntry?.game);
 
-    const payload = JSON.stringify(buildAppPayload()).replace(/</g, "\\u003c");
-    const injected = content.replace(
-      "__ONBOARDING_DATA_SCRIPT__",
-      `<script>window.__ONBOARDING_DATA__ = ${payload};</script>`
-    );
-
-    res.writeHead(200, {
-      "Content-Type": "text/html; charset=utf-8",
-      "Cache-Control": "no-store, no-cache, must-revalidate"
-    });
-    res.end(injected);
-  });
+  return {
+    rankEntry: rankEntry || null,
+    featuredGames: featuredGames.length ? featuredGames : games.slice(0, 2)
+  };
 }
 
 function getDashboardStats(plans) {
@@ -193,14 +259,218 @@ function getDashboardStats(plans) {
   };
 }
 
+function buildAppPayload(session) {
+  const accounts = readAccounts();
+  const account = accounts.find((entry) => entry.id === session?.accountId) || null;
+  const engagement = account ? getAccountEngagement(account) : { rankEntry: null, featuredGames: [] };
+
+  return {
+    generatedAt: new Date().toISOString(),
+    deployment: deploymentInfo,
+    stats: getDashboardStats(sampleData.plans),
+    currentUser: account
+      ? {
+          id: account.id,
+          username: account.username,
+          displayName: account.displayName,
+          department: account.department,
+          role: account.role,
+          profileImage: account.profileImage,
+          rank: engagement.rankEntry ? engagement.rankEntry.rank : null,
+          elo: engagement.rankEntry ? engagement.rankEntry.elo : null,
+          game: engagement.rankEntry ? engagement.rankEntry.game : null
+        }
+      : null,
+    ...sampleData
+  };
+}
+
+function buildAccountPanel(session, query, pathname) {
+  const success = query.get("account") === "updated";
+  return `
+    <div class="account-panel">
+      <p class="eyebrow">Signed In</p>
+      <div class="account-identity">
+        <img class="profile-avatar profile-avatar-large" src="${escapeHtml(session.profileImage || DEFAULT_PROFILE_IMAGE)}" alt="${escapeHtml(session.displayName)}" />
+        <div>
+          <strong class="account-name">${escapeHtml(session.displayName)}</strong>
+          <p class="account-meta">${escapeHtml(session.role || "Lumofy User")}</p>
+          <p class="account-meta">@${escapeHtml(session.username)}</p>
+        </div>
+      </div>
+      ${success ? '<p class="account-success">Account details updated.</p>' : ""}
+      <form class="account-form" method="post" action="/account/update">
+        <input type="hidden" name="from" value="${escapeHtml(pathname || "/")}" />
+        <label class="field">
+          <span>Display name</span>
+          <input name="displayName" type="text" value="${escapeHtml(session.displayName)}" required />
+        </label>
+        <label class="field">
+          <span>New password</span>
+          <input name="password" type="password" placeholder="Change password" required />
+        </label>
+        <label class="field">
+          <span>Profile picture URL</span>
+          <input name="profileImage" type="url" value="${escapeHtml(session.profileImage || DEFAULT_PROFILE_IMAGE)}" required />
+        </label>
+        <button class="primary-button account-save" type="submit">Save account</button>
+      </form>
+      <form method="post" action="/logout">
+        <button class="secondary-button" type="submit">Log Out</button>
+      </form>
+    </div>
+  `;
+}
+
+function buildTopbarAccount(session) {
+  return `
+    <div class="topbar-user">
+      <img class="profile-avatar" src="${escapeHtml(session.profileImage || DEFAULT_PROFILE_IMAGE)}" alt="${escapeHtml(session.displayName)}" />
+      <div class="topbar-user-copy">
+        <strong>${escapeHtml(session.displayName)}</strong>
+        <span>@${escapeHtml(session.username)}</span>
+      </div>
+      <form method="post" action="/logout">
+        <button class="ghost-button" type="submit">Log out</button>
+      </form>
+    </div>
+  `;
+}
+
+function buildEngagementSpotlight(session) {
+  const accounts = readAccounts();
+  const account = accounts.find((entry) => entry.id === session.accountId);
+  const { rankEntry, featuredGames } = getAccountEngagement(account);
+  const rankLabel = rankEntry
+    ? `#${rankEntry.rank} in ${escapeHtml(rankEntry.game)} · ELO ${rankEntry.elo}`
+    : "Not ranked yet";
+
+  return `
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">Your Engagement</p>
+          <h3>${escapeHtml(account.displayName)}</h3>
+          <p class="section-copy">Current account context, linked to the leaderboard and available games.</p>
+        </div>
+      </div>
+      <div class="stack">
+        <article class="manager-card">
+          <div class="spotlight-head">
+            <img class="profile-avatar profile-avatar-large" src="${escapeHtml(account.profileImage || DEFAULT_PROFILE_IMAGE)}" alt="${escapeHtml(account.displayName)}" />
+            <div>
+              <strong>${rankLabel}</strong>
+              <p class="muted">${escapeHtml(account.role || "Lumofy User")}</p>
+            </div>
+          </div>
+        </article>
+        ${featuredGames
+          .map(
+            (game) => `
+              <article class="asset-card">
+                <strong>${escapeHtml(game.name)}</strong>
+                <p>${escapeHtml(game.description)}</p>
+                <p class="muted">${escapeHtml(game.format)}</p>
+              </article>
+            `
+          )
+          .join("")}
+      </div>
+    </section>
+  `;
+}
+
+function buildLoginUserOptions(accounts, selectedAccountId) {
+  return accounts
+    .map((account) => {
+      const checked = account.id === selectedAccountId ? "checked" : "";
+      return `
+        <label class="login-user-card">
+          <input class="login-user-input" type="radio" name="accountId" value="${escapeHtml(account.id)}" ${checked} required />
+          <img class="profile-avatar login-user-avatar" src="${escapeHtml(account.profileImage || DEFAULT_PROFILE_IMAGE)}" alt="${escapeHtml(account.displayName)}" />
+          <span class="login-user-copy">
+            <strong>${escapeHtml(account.displayName)}</strong>
+            <span>${escapeHtml(account.role || "Lumofy User")}</span>
+          </span>
+        </label>
+      `;
+    })
+    .join("");
+}
+
+function buildLoginLeaderboard() {
+  return (sampleData.engagement?.leaderboard || [])
+    .slice(0, 3)
+    .map(
+      (entry) => `
+        <article class="leaderboard-card">
+          <div class="pill-row">
+            <span class="leaderboard-rank">${entry.rank}</span>
+            <span class="pill">${escapeHtml(entry.game)}</span>
+            <span class="status-pill status-in_progress">ELO ${entry.elo}</span>
+          </div>
+          <strong>${escapeHtml(entry.name)}</strong>
+        </article>
+      `
+    )
+    .join("");
+}
+
+function serveLoginPage(res, requestUrl) {
+  fs.readFile(loginHtmlPath, "utf8", (error, content) => {
+    if (error) {
+      res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end("Not found");
+      return;
+    }
+
+    const accounts = readAccounts();
+    const selectedAccountId = requestUrl.searchParams.get("accountId") || accounts[0]?.id || "";
+    const loginMarkup = content
+      .replace("__LOGIN_USER_OPTIONS__", buildLoginUserOptions(accounts, selectedAccountId))
+      .replace("__LOGIN_LEADERBOARD__", buildLoginLeaderboard());
+
+    res.writeHead(200, {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-store, no-cache, must-revalidate"
+    });
+    res.end(loginMarkup);
+  });
+}
+
+function serveAppPage(filePath, res, req, requestUrl) {
+  fs.readFile(filePath, "utf8", (error, content) => {
+    if (error) {
+      res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end("Not found");
+      return;
+    }
+
+    const session = getSession(req);
+    const payload = JSON.stringify(buildAppPayload(session)).replace(/</g, "\\u003c");
+    let injected = content.replace(
+      "__ONBOARDING_DATA_SCRIPT__",
+      `<script>window.__ONBOARDING_DATA__ = ${payload};</script>`
+    );
+
+    injected = injected
+      .replace("__TOPBAR_ACCOUNT__", buildTopbarAccount(session))
+      .replace("__ACCOUNT_PANEL__", buildAccountPanel(session, requestUrl.searchParams, requestUrl.pathname))
+      .replace("__ENGAGEMENT_SPOTLIGHT__", requestUrl.pathname === "/engagement.html" ? buildEngagementSpotlight(session) : "");
+
+    res.writeHead(200, {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-store, no-cache, must-revalidate"
+    });
+    res.end(injected);
+  });
+}
+
 const server = http.createServer((req, res) => {
   const requestUrl = new URL(req.url, `http://${req.headers.host}`);
 
   if (requestUrl.pathname === "/api/health") {
-    sendJson(res, 200, {
-      status: "ok",
-      deployment: deploymentInfo
-    });
+    sendJson(res, 200, { status: "ok", deployment: deploymentInfo });
     return;
   }
 
@@ -208,33 +478,76 @@ const server = http.createServer((req, res) => {
     const session = getSession(req);
     sendJson(res, 200, {
       authenticated: Boolean(session),
-      username: session ? session.username : null
+      username: session ? session.username : null,
+      displayName: session ? session.displayName : null
     });
     return;
   }
 
   if (requestUrl.pathname === "/login" && req.method === "GET") {
-    serveFile(loginHtmlPath, res);
+    serveLoginPage(res, requestUrl);
     return;
   }
 
   if (requestUrl.pathname === "/login" && req.method === "POST") {
     readBody(req)
       .then((body) => {
-        const { username, password } = parseFormBody(body || "");
+        const { accountId = "", password = "" } = parseFormBody(body || "");
+        const account = readAccounts().find((entry) => entry.id === accountId);
 
-        if (username !== VALID_USERNAME || password !== VALID_PASSWORD) {
-          res.writeHead(303, { Location: "/login?error=1" });
+        if (!account || password !== account.password) {
+          res.writeHead(303, { Location: `/login?error=1&accountId=${encodeURIComponent(accountId)}` });
           res.end();
           return;
         }
 
-        setSessionCookie(res);
+        setSessionCookie(res, account.id);
         res.writeHead(303, { Location: "/" });
         res.end();
       })
       .catch(() => {
         res.writeHead(303, { Location: "/login?error=1" });
+        res.end();
+      });
+    return;
+  }
+
+  if (requestUrl.pathname === "/account/update" && req.method === "POST") {
+    const session = getSession(req);
+    if (!session) {
+      res.writeHead(303, { Location: "/login" });
+      res.end();
+      return;
+    }
+
+    readBody(req)
+      .then((body) => {
+        const { displayName = "", password = "", from = "", profileImage = "" } = parseFormBody(body || "");
+        const accounts = readAccounts();
+        const index = accounts.findIndex((entry) => entry.id === session.accountId);
+
+        if (index === -1 || !displayName.trim() || !password.trim()) {
+          res.writeHead(303, { Location: "/?account=error" });
+          res.end();
+          return;
+        }
+
+        accounts[index] = {
+          ...accounts[index],
+          displayName: displayName.trim(),
+          username: slugify(displayName),
+          password: password.trim(),
+          profileImage: profileImage.trim() || DEFAULT_PROFILE_IMAGE
+        };
+        writeAccounts(accounts);
+        setSessionCookie(res, session.accountId);
+        const normalizedFrom = `/${String(from).replace(/^\//, "")}`.replace("//", "/");
+        const backTo = protectedHtmlRoutes.has(normalizedFrom) ? normalizedFrom : "/";
+        res.writeHead(303, { Location: `${backTo}?account=updated` });
+        res.end();
+      })
+      .catch(() => {
+        res.writeHead(303, { Location: "/?account=error" });
         res.end();
       });
     return;
@@ -248,17 +561,17 @@ const server = http.createServer((req, res) => {
   }
 
   if (requestUrl.pathname === "/api/onboarding") {
-    sendJson(res, 200, buildAppPayload());
+    sendJson(res, 200, buildAppPayload(getSession(req)));
     return;
   }
 
   if (requestUrl.pathname === "/") {
     if (!getSession(req)) {
-      serveFile(loginHtmlPath, res);
+      serveLoginPage(res, requestUrl);
       return;
     }
 
-    serveAppPage(appHtmlPath, res);
+    serveAppPage(path.join(publicDir, "index.html"), res, req, requestUrl);
     return;
   }
 
@@ -266,7 +579,7 @@ const server = http.createServer((req, res) => {
   filePath = path.normalize(filePath);
 
   if (protectedHtmlRoutes.has(requestUrl.pathname) && !getSession(req)) {
-    serveFile(loginHtmlPath, res);
+    serveLoginPage(res, requestUrl);
     return;
   }
 
@@ -278,17 +591,17 @@ const server = http.createServer((req, res) => {
 
   fs.stat(filePath, (error, stats) => {
     if (!error && stats.isDirectory()) {
-      serveAppPage(path.join(filePath, "index.html"), res);
+      serveAppPage(path.join(filePath, "index.html"), res, req, requestUrl);
       return;
     }
 
     if (error) {
-      serveAppPage(path.join(publicDir, "index.html"), res);
+      serveAppPage(path.join(publicDir, "index.html"), res, req, requestUrl);
       return;
     }
 
     if (path.extname(filePath).toLowerCase() === ".html" && protectedHtmlRoutes.has(requestUrl.pathname)) {
-      serveAppPage(filePath, res);
+      serveAppPage(filePath, res, req, requestUrl);
       return;
     }
 
