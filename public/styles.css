@@ -881,6 +881,60 @@ tbody tr.is-selected {
   margin-top: 12px;
 }
 
+.accordion-panel {
+  border-radius: 14px;
+}
+
+.accordion-summary {
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.accordion-summary::-webkit-details-marker {
+  display: none;
+}
+
+.accordion-summary .section-copy {
+  margin-top: 6px;
+}
+
+.accordion-icon {
+  width: 18px;
+  height: 18px;
+  margin-top: 4px;
+  flex: none;
+  border-right: 2px solid var(--muted-soft);
+  border-bottom: 2px solid var(--muted-soft);
+  transform: rotate(45deg);
+  transition: transform 180ms ease, border-color 180ms ease;
+}
+
+.accordion-panel[open] .accordion-icon {
+  transform: rotate(225deg);
+  border-color: var(--accent);
+}
+
+.accordion-body {
+  margin-top: 14px;
+  animation: accordion-fade 220ms ease;
+  transform-origin: top;
+}
+
+@keyframes accordion-fade {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .chat-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
