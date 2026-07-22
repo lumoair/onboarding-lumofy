@@ -10,11 +10,10 @@ const treeSummaryCards = document.getElementById("tree-summary-cards");
 const engagementSummaryCards = document.getElementById("engagement-summary-cards");
 const leaderboardList = document.getElementById("leaderboard-list");
 const gamesList = document.getElementById("games-list");
+const gamePlayground = document.getElementById("game-playground");
 const addEmployeeButton = document.getElementById("add-employee-button");
 const addEmployeeForm = document.getElementById("add-employee-form");
 const cancelEmployeeButton = document.getElementById("cancel-employee-button");
-const employeeTaskList = document.getElementById("employee-task-list");
-const employeeTaskForm = document.getElementById("employee-task-form");
 const publicChatList = document.getElementById("public-chat-list");
 const privateChatList = document.getElementById("private-chat-list");
 const publicChatForm = document.getElementById("public-chat-form");
@@ -22,6 +21,8 @@ const privateChatForm = document.getElementById("private-chat-form");
 const privateChatRecipient = document.getElementById("private-chat-recipient");
 let onboardingData = null;
 let selectedEmployeeId = null;
+let activeGame = null;
+let gameState = null;
 
 function normalizeDepartmentName(value) {
   return String(value || "").trim();
@@ -545,23 +546,6 @@ function renderEmployeeWorkspace() {
     employeeRoleForm.elements.passport.value = employee.passport || "";
   }
 
-  if (employeeTaskList) {
-    employeeTaskList.innerHTML = (employee.assignedTasks || [])
-      .map(
-        (task) => `
-          <article class="task-card">
-            <div class="pill-row">
-              <span class="status-pill ${statusClass(task.status)}">${task.status.replaceAll("_", " ")}</span>
-              <span class="pill">${task.owner}</span>
-            </div>
-            <strong>${task.title}</strong>
-            <p class="muted">Due ${formatDate(task.dueDate)}</p>
-          </article>
-        `
-      )
-      .join("") || "<p class=\"muted\">No tasks assigned yet.</p>";
-  }
-
   if (privateChatRecipient) {
     privateChatRecipient.textContent = `Private thread with ${employee.fullName}`;
   }
@@ -618,6 +602,47 @@ function renderEmployeeChats() {
   }
 }
 
+function startGame(name) {
+  activeGame = name;
+  if (name === "Minesweeper") {
+    const mines = new Set();
+    while (mines.size < 6) mines.add(Math.floor(Math.random() * 36));
+    gameState = { mines, opened: new Set(), ended: false };
+  } else if (name === "Connect Four") {
+    gameState = { board: Array.from({ length: 6 }, () => Array(7).fill("")), ended: false };
+  } else {
+    const words = ["onboarding", "lumofy", "teamwork", "momentum", "progress"];
+    const word = words[Math.floor(Math.random() * words.length)];
+    gameState = { word, scrambled: word.split("").sort(() => Math.random() - 0.5).join(""), score: 0 };
+  }
+  renderGame();
+}
+
+function renderGame(message = "") {
+  if (!gamePlayground || !activeGame || !gameState) return;
+  if (activeGame === "Minesweeper") {
+    gamePlayground.innerHTML = `<div class="game-head"><h3>Minesweeper</h3><button class="ghost-button" data-close-game>Close</button></div><p class="muted">Reveal every safe square. Avoid the six mines.</p><div class="mine-grid">${Array.from({ length: 36 }, (_, index) => `<button class="mine-cell ${gameState.opened.has(index) ? "is-open" : ""}" data-mine-cell="${index}">${gameState.opened.has(index) ? (gameState.mines.has(index) ? "✹" : "•") : ""}</button>`).join("")}</div><p class="game-message">${message}</p>`;
+    return;
+  }
+  if (activeGame === "Connect Four") {
+    gamePlayground.innerHTML = `<div class="game-head"><h3>Connect Four</h3><button class="ghost-button" data-close-game>Close</button></div><p class="muted">Choose a column. Get four red pieces in a row before the computer does.</p><div class="connect-controls">${Array.from({ length: 7 }, (_, col) => `<button class="ghost-button" data-connect-column="${col}" ${gameState.ended ? "disabled" : ""}>Drop ${col + 1}</button>`).join("")}</div><div class="connect-grid">${gameState.board.flatMap((row) => row.map((cell) => `<span class="connect-cell ${cell === "R" ? "red" : cell === "Y" ? "yellow" : ""}"></span>`)).join("")}</div><p class="game-message">${message}</p>`;
+    return;
+  }
+  gamePlayground.innerHTML = `<div class="game-head"><h3>Word Sprint</h3><button class="ghost-button" data-close-game>Close</button></div><p class="muted">Unscramble this word: <strong>${gameState.scrambled}</strong></p><form id="word-sprint-form" class="game-form"><input name="guess" autocomplete="off" required autofocus /><button class="primary-button">Check word</button></form><p class="game-message">${message}</p>`;
+}
+
+function connectWinner(board, token) {
+  const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
+  return board.some((row, r) => row.some((cell, c) => cell === token && directions.some(([dr, dc]) => [1, 2, 3].every((step) => board[r + dr * step]?.[c + dc * step] === token))));
+}
+
+function dropConnectPiece(column, token) {
+  for (let row = 5; row >= 0; row -= 1) {
+    if (!gameState.board[row][column]) { gameState.board[row][column] = token; return true; }
+  }
+  return false;
+}
+
 function renderEngagement(engagement) {
   if (!engagement) {
     return;
@@ -671,6 +696,7 @@ function renderEngagement(engagement) {
             <p>${game.description}</p>
             <p class="muted">${game.format}</p>
             <p class="muted">${game.players} participants</p>
+            <button class="primary-button game-launch" data-start-game="${game.name}">Play now</button>
           </article>
         `
       )
@@ -911,6 +937,10 @@ function renderDashboard(data) {
   renderRoleTree(data.roleTree || []);
   renderDetail(data.detail);
   renderEngagement(data.engagement);
+  const auditLogList = document.getElementById("audit-log-list");
+  if (auditLogList) {
+    auditLogList.innerHTML = (data.auditLogs || []).map((log) => `<article class="manager-card"><strong>${log.action}</strong><p>${log.actor} · ${log.role}</p><p class="muted">${log.detail}</p><p class="muted">${formatDateTime(log.at)}</p></article>`).join("") || "<p class=\"muted\">No activity recorded yet.</p>";
+  }
 }
 
 if (addPlanButton && addPlanForm && cancelPlanButton) {
@@ -1006,26 +1036,6 @@ if (addEmployeeButton && addEmployeeForm && cancelEmployeeButton) {
   });
 }
 
-if (employeeTaskForm) {
-  employeeTaskForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const employee = getSelectedEmployee();
-    if (!employee) {
-      return;
-    }
-
-    const formData = new FormData(employeeTaskForm);
-    try {
-      const nextData = await postJson(`/api/employees/${employee.id}/tasks`, Object.fromEntries(formData.entries()));
-      onboardingData = hydrateData(nextData);
-      renderDashboard(onboardingData);
-      employeeTaskForm.reset();
-    } catch (error) {
-      console.error(error);
-    }
-  });
-}
-
 document.addEventListener("submit", async (event) => {
   const employeeRoleForm = event.target.closest("#employee-role-form");
   if (!employeeRoleForm) {
@@ -1049,6 +1059,45 @@ document.addEventListener("submit", async (event) => {
 });
 
 document.addEventListener("click", async (event) => {
+  const gameButton = event.target.closest("[data-start-game]");
+  if (gameButton) {
+    startGame(gameButton.getAttribute("data-start-game"));
+    return;
+  }
+  if (event.target.closest("[data-close-game]")) {
+    activeGame = null;
+    gameState = null;
+    if (gamePlayground) gamePlayground.innerHTML = "";
+    return;
+  }
+  const mineCell = event.target.closest("[data-mine-cell]");
+  if (mineCell && activeGame === "Minesweeper" && !gameState.ended) {
+    const index = Number(mineCell.getAttribute("data-mine-cell"));
+    gameState.opened.add(index);
+    if (gameState.mines.has(index)) {
+      gameState.ended = true;
+      gameState.mines.forEach((mine) => gameState.opened.add(mine));
+      renderGame("Mine hit — start a new round to try again.");
+    } else if (gameState.opened.size === 30) {
+      gameState.ended = true;
+      renderGame("You cleared the board. Great round!");
+    } else {
+      renderGame();
+    }
+    return;
+  }
+  const connectColumn = event.target.closest("[data-connect-column]");
+  if (connectColumn && activeGame === "Connect Four" && !gameState.ended) {
+    const column = Number(connectColumn.getAttribute("data-connect-column"));
+    if (!dropConnectPiece(column, "R")) { renderGame("That column is full. Choose another."); return; }
+    if (connectWinner(gameState.board, "R")) { gameState.ended = true; renderGame("You win! Four in a row."); return; }
+    const available = Array.from({ length: 7 }, (_, i) => i).filter((i) => !gameState.board[0][i]);
+    if (!available.length) { gameState.ended = true; renderGame("Draw game."); return; }
+    dropConnectPiece(available[Math.floor(Math.random() * available.length)], "Y");
+    if (connectWinner(gameState.board, "Y")) { gameState.ended = true; renderGame("The computer wins this round."); return; }
+    renderGame("Your turn.");
+    return;
+  }
   const clockInButton = event.target.closest("#clock-in-button");
   if (clockInButton) {
     const employee = getSelectedEmployee();
@@ -1080,6 +1129,18 @@ document.addEventListener("click", async (event) => {
     } catch (error) {
       console.error(error);
     }
+  }
+});
+
+document.addEventListener("submit", (event) => {
+  if (event.target.id !== "word-sprint-form") return;
+  event.preventDefault();
+  const guess = String(new FormData(event.target).get("guess") || "").trim().toLowerCase();
+  if (guess === gameState.word) {
+    gameState.score += 1;
+    renderGame(`Correct! Score: ${gameState.score}. Start another game from the Games cards.`);
+  } else {
+    renderGame("Not quite — try again.");
   }
 });
 

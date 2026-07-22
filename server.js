@@ -10,8 +10,11 @@ const AUTH_COOKIE = "lumofy_session";
 const SESSION_SECRET = "lumofy-preview";
 const publicDir = path.join(__dirname, "public");
 const loginHtmlPath = path.join(publicDir, "login.html");
+const passwordSetupHtmlPath = path.join(publicDir, "set-password.html");
+const attendanceHtmlPath = path.join(publicDir, "attendance.html");
 const accountsPath = path.join(__dirname, "data", "accounts.json");
 const employeeControlPath = path.join(__dirname, "data", "employee-control.json");
+const auditLogPath = path.join(__dirname, "data", "audit-log.json");
 const uploadsDir = path.join(publicDir, "uploads");
 const protectedHtmlRoutes = new Set([
   "/",
@@ -19,7 +22,8 @@ const protectedHtmlRoutes = new Set([
   "/employees.html",
   "/tree.html",
   "/plan.html",
-  "/engagement.html"
+  "/engagement.html",
+  "/logs.html"
 ]);
 const sampleData = JSON.parse(
   fs.readFileSync(path.join(__dirname, "data", "sample-data.json"), "utf8")
@@ -100,6 +104,89 @@ function buildPermissions(accessLevel) {
   };
 
   return permissionMap[accessLevel] || permissionMap.employee_access;
+}
+
+function buildRoleBasedGoals(role) {
+  const normalizedRole = String(role || "").toLowerCase();
+  let track = "individual contributor";
+  let goals = {
+    30: "Complete role foundations, required systems access, and core workflow training.",
+    60: "Own a recurring piece of work and deliver against agreed quality and turnaround expectations.",
+    90: "Demonstrate independent execution and agree the next-quarter development goals with the manager."
+  };
+
+  if (/engineer|developer|designer|product|platform|automation|qc/.test(normalizedRole)) {
+    track = "product and engineering";
+    goals = {
+      30: "Ship a small, reviewed improvement and demonstrate the team development workflow end to end.",
+      60: "Own a scoped feature or technical improvement with documented handover and measurable quality outcomes.",
+      90: "Lead delivery for a meaningful roadmap item and propose the next technical or product improvement."
+    };
+  } else if (/sales|success|support|implementation|partnership|business development/.test(normalizedRole)) {
+    track = "customer and revenue";
+    goals = {
+      30: "Learn the customer journey, product value story, and complete supervised customer or prospect interactions.",
+      60: "Independently manage an assigned account, support queue, or pipeline segment to the agreed service standard.",
+      90: "Achieve an agreed customer or revenue outcome and present a repeatable improvement to the team."
+    };
+  } else if (/manager|director|lead|founder|coo|ceo/.test(normalizedRole)) {
+    track = "leadership";
+    goals = {
+      30: "Establish team context, operating cadence, stakeholder map, and first people or delivery priorities.",
+      60: "Run the team cadence independently and deliver a measurable improvement to execution, engagement, or performance.",
+      90: "Align a quarter plan with leadership, develop direct reports, and report outcomes against the agreed priorities."
+    };
+  } else if (/finance|hr|people|marketing|content|learning|admin/.test(normalizedRole)) {
+    track = "business operations";
+    goals = {
+      30: "Learn the operating calendar, controls, and key stakeholders; complete one supervised core process.",
+      60: "Own a recurring operational process with accurate, timely outputs and clear stakeholder communication.",
+      90: "Improve a process or campaign using evidence and agree the next-quarter operational objectives."
+    };
+  }
+
+  return [30, 60, 90].map((day, index) => ({
+    milestone: `Day ${day}`,
+    title: goals[day],
+    status: index === 0 ? "in_progress" : "not_started",
+    progress: index === 0 ? 25 : 0,
+    track
+  }));
+}
+
+function canReadLogs(session) {
+  const role = String(session?.role || "").toLowerCase();
+  const access = String(session?.accessLevel || "").toLowerCase();
+  return (
+    access === "full_access" ||
+    access === "hr_admin" ||
+    access === "manager_access" ||
+    /platform developer|\bhr\b|human resources|manager|cofounder|co-founder|founder|\bceo\b|co-ceo/.test(role)
+  );
+}
+
+function readAuditLogs() {
+  if (!fs.existsSync(auditLogPath)) {
+    fs.writeFileSync(auditLogPath, "[]");
+  }
+  try {
+    return JSON.parse(fs.readFileSync(auditLogPath, "utf8"));
+  } catch {
+    return [];
+  }
+}
+
+function recordAuditLog(session, action, detail) {
+  const logs = readAuditLogs();
+  logs.unshift({
+    id: `log-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    at: new Date().toISOString(),
+    actor: session?.displayName || "System",
+    role: session?.role || "System",
+    action,
+    detail
+  });
+  fs.writeFileSync(auditLogPath, JSON.stringify(logs.slice(0, 250), null, 2));
 }
 
 function getManagerPairs() {
@@ -258,6 +345,7 @@ function buildDefaultAccounts() {
       displayName,
       username: slugify(displayName),
       password: "user",
+      passwordSet: false,
       profileImage: DEFAULT_PROFILE_IMAGE,
       department: employee.department || "Unassigned",
       role: employee.jobTitle || "Unassigned Role",
@@ -273,6 +361,7 @@ function buildDefaultAccounts() {
         displayName: entry.name,
         username: slugify(entry.name),
         password: "user",
+        passwordSet: false,
         profileImage: DEFAULT_PROFILE_IMAGE,
         department: "Unassigned",
         role: "Lumofy Team Member",
@@ -287,6 +376,7 @@ function buildDefaultAccounts() {
     displayName: "Mohammed Jaber",
     username: "mohammed-jaber",
     password: "user",
+    passwordSet: false,
     profileImage: DEFAULT_PROFILE_IMAGE,
     department: "Engineering",
     role: "Platform Developer",
@@ -309,6 +399,7 @@ function readAccounts() {
   const normalized = accounts.map((account) => ({
     ...account,
     profileImage: account.profileImage || DEFAULT_PROFILE_IMAGE,
+    passwordSet: Boolean(account.passwordSet),
     accessLevel: account.accessLevel || "employee_access",
     permissions: Array.isArray(account.permissions)
       ? account.permissions
@@ -320,6 +411,7 @@ function readAccounts() {
       displayName: "Mohammed Jaber",
       username: "mohammed-jaber",
       password: "user",
+      passwordSet: false,
       profileImage: DEFAULT_PROFILE_IMAGE,
       department: "Engineering",
       role: "Platform Developer",
@@ -592,6 +684,58 @@ function clearSessionCookie(res) {
   );
 }
 
+function getSessionEmployee(session) {
+  if (!session) {
+    return null;
+  }
+  return readEmployeeControl().employees.find((employee) => employee.fullName === session.displayName) || null;
+}
+
+function isClockedIn(session) {
+  return Boolean(getSessionEmployee(session)?.attendance?.clockedIn);
+}
+
+function clockSessionEmployee(session, action) {
+  const control = readEmployeeControl();
+  const employee = control.employees.find((entry) => entry.fullName === session.displayName);
+  if (!employee) {
+    return false;
+  }
+  employee.attendance = employee.attendance || {};
+  employee.attendance.clockedIn = action === "clock_in";
+  if (action === "clock_in") {
+    employee.attendance.lastClockIn = new Date().toISOString();
+  } else {
+    employee.attendance.lastClockOut = new Date().toISOString();
+  }
+  writeEmployeeControl(control);
+  return true;
+}
+
+function servePasswordSetupPage(res, session, error = "") {
+  fs.readFile(passwordSetupHtmlPath, "utf8", (readError, content) => {
+    if (readError) {
+      res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end("Not found");
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
+    res.end(content.replaceAll("__DISPLAY_NAME__", escapeHtml(session.displayName)).replace("__PASSWORD_ERROR__", error));
+  });
+}
+
+function serveAttendancePage(res, session) {
+  fs.readFile(attendanceHtmlPath, "utf8", (readError, content) => {
+    if (readError) {
+      res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end("Not found");
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
+    res.end(content.replaceAll("__DISPLAY_NAME__", escapeHtml(session.displayName)).replaceAll("__ROLE__", escapeHtml(session.role || "Lumofy User")));
+  });
+}
+
 function serveFile(filePath, res) {
   fs.readFile(filePath, (error, content) => {
     if (error) {
@@ -659,6 +803,28 @@ function buildAppPayload(session) {
   const account = accounts.find((entry) => entry.id === session?.accountId) || null;
   const engagement = account ? getAccountEngagement(account) : { rankEntry: null, featuredGames: [] };
 
+  const plans = (sampleData.plans || []).map((plan) => ({
+    ...plan,
+    goals: buildRoleBasedGoals(plan.role)
+  }));
+  const linkedPlan = plans.find((plan) => plan.employeeName === session?.displayName);
+  const detail = {
+    ...sampleData.detail,
+    ...(linkedPlan
+      ? {
+          employeeName: linkedPlan.employeeName,
+          role: linkedPlan.role,
+          department: linkedPlan.department,
+          manager: linkedPlan.manager,
+          startDate: linkedPlan.startDate,
+          status: linkedPlan.status,
+          completion: linkedPlan.progress,
+          overdueTasks: linkedPlan.overdueTasks,
+          goals: linkedPlan.goals
+        }
+      : { goals: buildRoleBasedGoals(sampleData.detail?.role) })
+  };
+
   return {
     generatedAt: new Date().toISOString(),
     deployment: deploymentInfo,
@@ -679,7 +845,10 @@ function buildAppPayload(session) {
         }
       : null,
     employeeControl,
+    auditLogs: canReadLogs(session) ? readAuditLogs() : [],
     ...sampleData,
+    plans,
+    detail,
     employees: employeeControl.employees
   };
 }
@@ -740,6 +909,7 @@ function buildTopbarAccount(session) {
         <strong>${escapeHtml(session.displayName)}</strong>
         <span>@${escapeHtml(session.username)}</span>
       </div>
+      ${canReadLogs(session) ? '<a class="ghost-button" href="/logs.html">Logs</a>' : ""}
       <form method="post" action="/logout">
         <button class="ghost-button" type="submit">Log out</button>
       </form>
@@ -1116,6 +1286,23 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  if (requestUrl.pathname.startsWith("/api/")) {
+    const session = getSession(req);
+    const account = session && readAccounts().find((entry) => entry.id === session.accountId);
+    if (!session) {
+      sendJson(res, 401, { error: "Unauthorized" });
+      return;
+    }
+    if (!account?.passwordSet) {
+      sendJson(res, 403, { error: "Password setup required" });
+      return;
+    }
+    if (!isClockedIn(session)) {
+      sendJson(res, 403, { error: "Clock in required" });
+      return;
+    }
+  }
+
   if (requestUrl.pathname === "/login" && req.method === "GET") {
     serveLoginPage(res, requestUrl);
     return;
@@ -1134,13 +1321,103 @@ const server = http.createServer((req, res) => {
         }
 
         setSessionCookie(res, account.id);
-        res.writeHead(303, { Location: "/" });
+        recordAuditLog(account, "Signed in", "Completed account authentication.");
+        res.writeHead(303, { Location: account.passwordSet ? "/attendance" : "/set-password" });
         res.end();
       })
       .catch(() => {
         res.writeHead(303, { Location: "/login?error=1" });
         res.end();
       });
+    return;
+  }
+
+  if (requestUrl.pathname === "/set-password" && req.method === "GET") {
+    const session = getSession(req);
+    if (!session) {
+      res.writeHead(303, { Location: "/login" });
+      res.end();
+      return;
+    }
+    const account = readAccounts().find((entry) => entry.id === session.accountId);
+    if (account?.passwordSet) {
+      res.writeHead(303, { Location: isClockedIn(session) ? "/" : "/attendance" });
+      res.end();
+      return;
+    }
+    servePasswordSetupPage(res, session, requestUrl.searchParams.get("error") === "1" ? "Passwords must match and contain at least 8 characters." : "");
+    return;
+  }
+
+  if (requestUrl.pathname === "/set-password" && req.method === "POST") {
+    const session = getSession(req);
+    if (!session) {
+      res.writeHead(303, { Location: "/login" });
+      res.end();
+      return;
+    }
+    readBody(req).then((body) => {
+      const { password = "", confirmPassword = "" } = parseFormBody(body || "");
+      if (password.length < 8 || password !== confirmPassword) {
+        res.writeHead(303, { Location: "/set-password?error=1" });
+        res.end();
+        return;
+      }
+      const accounts = readAccounts();
+      const index = accounts.findIndex((entry) => entry.id === session.accountId);
+      if (index === -1) {
+        res.writeHead(303, { Location: "/login" });
+        res.end();
+        return;
+      }
+      accounts[index] = { ...accounts[index], password, passwordSet: true };
+      writeAccounts(accounts);
+      recordAuditLog(session, "Password set", "Completed first-time password setup.");
+      res.writeHead(303, { Location: "/attendance" });
+      res.end();
+    });
+    return;
+  }
+
+  if (requestUrl.pathname === "/attendance" && req.method === "GET") {
+    const session = getSession(req);
+    if (!session) {
+      res.writeHead(303, { Location: "/login" });
+      res.end();
+      return;
+    }
+    const account = readAccounts().find((entry) => entry.id === session.accountId);
+    if (!account?.passwordSet) {
+      res.writeHead(303, { Location: "/set-password" });
+      res.end();
+      return;
+    }
+    if (isClockedIn(session)) {
+      res.writeHead(303, { Location: "/" });
+      res.end();
+      return;
+    }
+    serveAttendancePage(res, session);
+    return;
+  }
+
+  if (requestUrl.pathname === "/clock-in" && req.method === "POST") {
+    const session = getSession(req);
+    if (!session) {
+      res.writeHead(303, { Location: "/login" });
+      res.end();
+      return;
+    }
+    const account = readAccounts().find((entry) => entry.id === session.accountId);
+    if (!account?.passwordSet) {
+      res.writeHead(303, { Location: "/set-password" });
+      res.end();
+      return;
+    }
+    clockSessionEmployee(session, "clock_in");
+    recordAuditLog(session, "Clocked in", "Opened a work session.");
+    res.writeHead(303, { Location: "/" });
+    res.end();
     return;
   }
 
@@ -1169,6 +1446,7 @@ const server = http.createServer((req, res) => {
           displayName: displayName.trim(),
           username: slugify(displayName),
           password: password.trim(),
+          passwordSet: true,
           profileImage: profileImage.trim() || DEFAULT_PROFILE_IMAGE
         };
         writeAccounts(accounts);
@@ -1247,6 +1525,11 @@ const server = http.createServer((req, res) => {
   }
 
   if (requestUrl.pathname === "/logout" && req.method === "POST") {
+    const session = getSession(req);
+    if (session && isClockedIn(session)) {
+      clockSessionEmployee(session, "clock_out");
+      recordAuditLog(session, "Clocked out", "Work session ended during logout.");
+    }
     clearSessionCookie(res);
     res.writeHead(303, { Location: "/login" });
     res.end();
@@ -1495,11 +1778,31 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  if (requestUrl.pathname === "/") {
-    if (!getSession(req)) {
+  if (protectedHtmlRoutes.has(requestUrl.pathname)) {
+    const session = getSession(req);
+    const account = session && readAccounts().find((entry) => entry.id === session.accountId);
+    if (!session) {
       serveLoginPage(res, requestUrl);
       return;
     }
+    if (!account?.passwordSet) {
+      res.writeHead(303, { Location: "/set-password" });
+      res.end();
+      return;
+    }
+    if (!isClockedIn(session)) {
+      res.writeHead(303, { Location: "/attendance" });
+      res.end();
+      return;
+    }
+    if (requestUrl.pathname === "/logs.html" && !canReadLogs(session)) {
+      res.writeHead(403, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end("You do not have permission to view audit logs.");
+      return;
+    }
+  }
+
+  if (requestUrl.pathname === "/") {
 
     serveAppPage(path.join(publicDir, "index.html"), res, req, requestUrl);
     return;
@@ -1507,11 +1810,6 @@ const server = http.createServer((req, res) => {
 
   let filePath = path.join(publicDir, requestUrl.pathname === "/" ? "index.html" : requestUrl.pathname);
   filePath = path.normalize(filePath);
-
-  if (protectedHtmlRoutes.has(requestUrl.pathname) && !getSession(req)) {
-    serveLoginPage(res, requestUrl);
-    return;
-  }
 
   if (!filePath.startsWith(publicDir)) {
     res.writeHead(403, { "Content-Type": "text/plain; charset=utf-8" });

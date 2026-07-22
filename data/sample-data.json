@@ -77,9 +77,9 @@
         "players": 18
       },
       {
-        "name": "Chess",
-        "description": "Weekly head-to-head matches with ELO tracking.",
-        "format": "1v1 ranked",
+        "name": "Connect Four",
+        "description": "Quick head-to-head rounds against the computer.",
+        "format": "1v1 quick match",
         "players": 12
       },
       {

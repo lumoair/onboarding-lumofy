@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Clock in · Lumofy</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="auth-shell auth-shell-page">
+      <section class="auth-card">
+        <p class="eyebrow">Attendance</p>
+        <h1>Ready to start, __DISPLAY_NAME__?</h1>
+        <p class="auth-copy">__ROLE__ · Clock in to access Lumofy. Logging out will clock you out automatically.</p>
+        <form class="auth-form" method="post" action="/clock-in"><button class="primary-button" type="submit">Clock in and open Lumofy</button></form>
+        <form class="auth-form" method="post" action="/logout"><button class="ghost-button" type="submit">Cancel and log out</button></form>
+      </section>
+    </main>
+  </body>
+</html>
