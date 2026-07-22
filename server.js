@@ -164,10 +164,10 @@ function buildDefaultAccounts() {
     }
   });
 
-  accountMap.set("Mohammed (atlas)", {
+  accountMap.set("Mohammed Jaber", {
     id: `acct-${String(accountMap.size + 1).padStart(3, "0")}`,
-    displayName: "Mohammed (atlas)",
-    username: "mohammed-atlas",
+    displayName: "Mohammed Jaber",
+    username: "mohammed-jaber",
     password: "user",
     profileImage: DEFAULT_PROFILE_IMAGE,
     department: "Engineering",
@@ -196,11 +196,11 @@ function readAccounts() {
       ? account.permissions
       : buildPermissions(account.accessLevel || "employee_access")
   }));
-  if (!normalized.find((account) => account.displayName === "Mohammed (atlas)")) {
+  if (!normalized.find((account) => account.displayName === "Mohammed Jaber")) {
     normalized.push({
       id: `acct-${String(normalized.length + 1).padStart(3, "0")}`,
-      displayName: "Mohammed (atlas)",
-      username: "mohammed-atlas",
+      displayName: "Mohammed Jaber",
+      username: "mohammed-jaber",
       password: "user",
       profileImage: DEFAULT_PROFILE_IMAGE,
       department: "Engineering",

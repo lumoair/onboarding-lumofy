@@ -49,7 +49,7 @@
     { "fullName": "Mahmood Malik", "jobTitle": "Cofounder & COO", "department": "Management", "employmentStatus": "active" },
     { "fullName": "Mahmoud Elreweny", "jobTitle": "Customer Success & Professional Service Director", "department": "Professionsal Services RevOps and Automation", "employmentStatus": "active" },
     { "fullName": "Mary Ashraf", "jobTitle": "Senior ELearning Developer", "department": "Professional Services", "employmentStatus": "active" },
-    { "fullName": "Mohammed (atlas)", "jobTitle": "Platform Developer", "department": "Engineering", "employmentStatus": "active" },
+    { "fullName": "Mohammed Jaber", "jobTitle": "Platform Developer", "department": "Engineering", "employmentStatus": "active" },
     { "fullName": "Mohamed AbdulHadi Isa Shamlooh", "jobTitle": "Support and Implementation Officer", "department": "Support and Implementation", "employmentStatus": "active" },
     { "fullName": "Mohamed Ahmed Mohamed Abel Wahab", "jobTitle": "Mid- Product Designer", "department": "Product", "employmentStatus": "active" },
     { "fullName": "Mosses Oderinde", "jobTitle": "Frontend Developer", "department": "Engineering", "employmentStatus": "active" },
@@ -232,7 +232,7 @@
             },
             {
               "title": "Platform Developer",
-              "name": "Mohammed (atlas)"
+              "name": "Mohammed Jaber"
             }
           ]
         },
