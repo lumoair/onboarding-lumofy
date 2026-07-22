@@ -146,6 +146,10 @@ function getManagerMapData() {
   return new Map(getManagerPairs());
 }
 
+function normalizeGender(value) {
+  return value === "she/her" ? "she/her" : "he/him";
+}
+
 function buildDefaultEmployeeRecord(employee, index, accountsByName) {
   const fullName = employee.fullName;
   const slug = slugify(fullName);
@@ -159,6 +163,7 @@ function buildDefaultEmployeeRecord(employee, index, accountsByName) {
     jobTitle: employee.jobTitle || "Unassigned Role",
     department: employee.department || "Unassigned",
     employmentStatus: employee.employmentStatus || "active",
+    gender: normalizeGender(employee.gender),
     manager: managerMap.get(fullName) || (fullName === "Ahmed Faraj" ? "Board / Founder" : "Ahmed Faraj"),
     email: `${slug}@lumofy.com`,
     phone: "",
@@ -346,6 +351,7 @@ function normalizeEmployeeRecord(record, accountsByName) {
     jobTitle: record.jobTitle || "Unassigned Role",
     department: record.department || "Unassigned",
     employmentStatus: record.employmentStatus || "active",
+    gender: normalizeGender(record.gender),
     manager: record.manager || (getManagerMapData().get(record.fullName) || "Ahmed Faraj"),
     email: record.email || `${slugify(record.fullName)}@lumofy.com`,
     phone: record.phone || "",
@@ -749,6 +755,12 @@ function buildClaudeContext(session) {
   const games = sampleData.engagement?.games || [];
   const leaderboard = sampleData.engagement?.leaderboard || [];
   const departments = [...new Set(employees.map((employee) => employee.department).filter(Boolean))].sort();
+  const genderCounts = employees.reduce((counts, employee) => {
+    const gender = normalizeGender(employee.gender);
+    counts[gender] = (counts[gender] || 0) + 1;
+    return counts;
+  }, {});
+  const totalAssignedTasks = employees.reduce((sum, employee) => sum + ((employee.assignedTasks || []).length), 0);
   const currentPlan = plans.find((plan) => plan.employeeName === session.displayName) || null;
   const roleTreeRoots = (sampleData.roleTree || []).map((node) => {
     const childCount = Array.isArray(node.children) ? node.children.length : 0;
@@ -795,8 +807,13 @@ function buildClaudeContext(session) {
     "- Basic reporting",
     "",
     "Current sample dataset snapshot:",
+    "This context is generated from the live employee workspace state on every page load, so newly added employees and later edits are included in the copied prompt.",
     `- Employees loaded: ${employees.length}`,
     `- Departments loaded: ${departments.length} (${departments.join(", ")})`,
+    `- Gender split: he/him ${genderCounts["he/him"] || 0}, she/her ${genderCounts["she/her"] || 0}`,
+    `- Assigned employee tasks tracked: ${totalAssignedTasks}`,
+    `- Public employee chat messages: ${(employeeControl.publicMessages || []).length}`,
+    `- Private employee chat messages: ${(employeeControl.privateMessages || []).length}`,
     `- Plans loaded: ${plans.length}`,
     `- Plan statuses in use: ${planStatuses.join(", ") || "none"}`,
     `- Games available: ${games.map((game) => `${game.name} (${game.format})`).join("; ") || "none"}`,
@@ -807,6 +824,11 @@ function buildClaudeContext(session) {
     "Current onboarding plans in sample data:",
     ...plans.map((plan) => {
       return `- ${plan.employeeName} | ${plan.role} | ${plan.department} | manager: ${plan.manager} | buddy: ${plan.buddy} | status: ${plan.status} | stage: ${plan.stage} | progress: ${plan.progress}% | overdue tasks: ${plan.overdueTasks} | start date: ${plan.startDate} | next action: ${plan.nextAction}`;
+    }),
+    "",
+    "Live employee workspace records:",
+    ...employees.slice(0, 20).map((employee) => {
+      return `- ${employee.fullName} | role: ${employee.jobTitle} | department: ${employee.department} | gender: ${normalizeGender(employee.gender)} | manager: ${employee.manager} | email: ${employee.email || "none"} | tasks: ${(employee.assignedTasks || []).length} | clocked in: ${employee.attendance?.clockedIn ? "yes" : "no"}`;
     }),
     "",
     "Engagement leaderboard top 3:",
@@ -1267,6 +1289,7 @@ const server = http.createServer((req, res) => {
               jobTitle: String(payload.jobTitle || "Unassigned Role").trim(),
               department: String(payload.department || "Unassigned").trim(),
               employmentStatus: String(payload.employmentStatus || "new hire").trim(),
+              gender: normalizeGender(String(payload.gender || "he/him").trim()),
               manager: String(payload.manager || "Ahmed Faraj").trim(),
               email: String(payload.email || `${slugify(fullName)}@lumofy.com`).trim(),
               phone: String(payload.phone || "").trim(),
@@ -1310,6 +1333,7 @@ const server = http.createServer((req, res) => {
         }
 
         employee.jobTitle = String(payload.jobTitle || employee.jobTitle).trim() || employee.jobTitle;
+        employee.gender = normalizeGender(String(payload.gender || employee.gender).trim());
         employee.manager = String(payload.manager || employee.manager).trim() || employee.manager;
         employee.email = String(payload.email || employee.email).trim() || employee.email;
         employee.phone = String(payload.phone || employee.phone).trim();

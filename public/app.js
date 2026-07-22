@@ -442,6 +442,7 @@ function renderEmployeeWorkspace() {
         <div>
           <strong>${employee.fullName}</strong>
           <p class="muted">${employee.jobTitle || "Unassigned Role"} • ${employee.department}</p>
+          <p class="muted">Gender: ${employee.gender || "he/him"}</p>
           <p class="muted">Manager: ${getEmployeeManager(employee)}</p>
         </div>
       </div>
@@ -465,6 +466,7 @@ function renderEmployeeWorkspace() {
 
   if (employeeRoleForm) {
     employeeRoleForm.elements.jobTitle.value = employee.jobTitle || "";
+    employeeRoleForm.elements.gender.value = employee.gender || "he/him";
     employeeRoleForm.elements.manager.value = getEmployeeManager(employee);
     employeeRoleForm.elements.email.value = employee.email || "";
     employeeRoleForm.elements.phone.value = employee.phone || "";
