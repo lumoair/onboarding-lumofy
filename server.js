@@ -537,21 +537,142 @@ function buildTopbarAccount(session) {
   `;
 }
 
+function buildClaudeContext(session) {
+  const employees = sampleData.employees || [];
+  const plans = sampleData.plans || [];
+  const summaryCards = sampleData.summaryCards || [];
+  const games = sampleData.engagement?.games || [];
+  const leaderboard = sampleData.engagement?.leaderboard || [];
+  const departments = [...new Set(employees.map((employee) => employee.department).filter(Boolean))].sort();
+  const currentPlan = plans.find((plan) => plan.employeeName === session.displayName) || null;
+  const roleTreeRoots = (sampleData.roleTree || []).map((node) => {
+    const childCount = Array.isArray(node.children) ? node.children.length : 0;
+    return `${node.title}: ${node.name}${childCount ? ` (${childCount} child groups)` : ""}`;
+  });
+  const planStatuses = [...new Set(plans.map((plan) => plan.status))];
+
+  const lines = [
+    "Lumofy Onboarding Control Centre",
+    "",
+    "Product purpose:",
+    "This platform is the control centre for employee onboarding inside Lumofy. It is not only a checklist. It is meant to show onboarding readiness, ownership, blockers, progress, and handoff quality across HR, managers, IT, buddies, and employees.",
+    "",
+    "Current signed-in user:",
+    `- Name: ${session.displayName}`,
+    `- Username: ${session.username}`,
+    `- Role: ${session.role || "Lumofy User"}`,
+    `- Department: ${session.department || "Unassigned"}`,
+    `- Access level: ${String(session.accessLevel || "employee_access").replaceAll("_", " ")}`,
+    `- Permissions: ${(session.permissions || []).join(", ") || "none"}`,
+    "",
+    "Primary platform sections:",
+    "- Dashboard: onboarding health, summary cards, readiness and overdue visibility",
+    "- Employees: employee directory style view with employee profile access",
+    "- Company Tree: reporting structure and role tree",
+    "- Plans: onboarding plans, tasks, status, manager ownership, checklists and progress",
+    "- Engagement: games, ELO leaderboard, top 3 podium, and activity tracking",
+    "- Account settings: profile image upload, display name change, password change, permissions-aware login",
+    "",
+    "Navigation model:",
+    "- Admin Portal -> People -> Onboarding",
+    "- Manager Portal -> Team -> Onboarding",
+    "- Talent Portal -> My Onboarding",
+    "",
+    "MVP workflow scope:",
+    "- Onboarding templates",
+    "- Plan creation from template",
+    "- Pre-start checklist",
+    "- Day 1 schedule",
+    "- Week 1 tasks",
+    "- 30/60/90-day goals",
+    "- Notifications and reminders",
+    "- Audit logging",
+    "- Basic reporting",
+    "",
+    "Current sample dataset snapshot:",
+    `- Employees loaded: ${employees.length}`,
+    `- Departments loaded: ${departments.length} (${departments.join(", ")})`,
+    `- Plans loaded: ${plans.length}`,
+    `- Plan statuses in use: ${planStatuses.join(", ") || "none"}`,
+    `- Games available: ${games.map((game) => `${game.name} (${game.format})`).join("; ") || "none"}`,
+    "",
+    "Summary cards shown on the dashboard:",
+    ...summaryCards.map((card) => `- ${card.label}: ${card.value}`),
+    "",
+    "Current onboarding plans in sample data:",
+    ...plans.map((plan) => {
+      return `- ${plan.employeeName} | ${plan.role} | ${plan.department} | manager: ${plan.manager} | buddy: ${plan.buddy} | status: ${plan.status} | stage: ${plan.stage} | progress: ${plan.progress}% | overdue tasks: ${plan.overdueTasks} | start date: ${plan.startDate} | next action: ${plan.nextAction}`;
+    }),
+    "",
+    "Engagement leaderboard top 3:",
+    ...leaderboard.map((entry) => `- Rank ${entry.rank}: ${entry.name} | game: ${entry.game} | ELO: ${entry.elo}`),
+    "",
+    "Company role tree roots:",
+    ...roleTreeRoots.map((line) => `- ${line}`),
+    "",
+    "Supported onboarding roles:",
+    "- HR Admin",
+    "- Manager",
+    "- Onboarding Buddy",
+    "- IT / Operations",
+    "- Employee",
+    "",
+    "Supported onboarding statuses:",
+    "- Plan statuses: draft, preparing, ready_for_day_1, in_progress, delayed, awaiting_manager_confirmation, completed, cancelled",
+    "- Task statuses: not_started, in_progress, blocked, completed, cancelled",
+    "- Goal statuses: not_started, in_progress, at_risk, completed",
+    "- Access statuses: not_required, not_requested, requested, in_progress, created, shared_with_employee, tested, access_issue, completed",
+    "",
+    "Database entities included in the local schema:",
+    "- onboarding_templates",
+    "- onboarding_template_tasks",
+    "- onboarding_plans",
+    "- onboarding_tasks",
+    "- onboarding_goals",
+    "- onboarding_checkins",
+    "- onboarding_access_items",
+    "- onboarding_schedule_items",
+    "- onboarding_documents",
+    "- onboarding_audit_logs",
+    "",
+    "Security and permissions model:",
+    "- Employees can only view their own onboarding plan and complete their own assigned tasks",
+    "- Managers can view direct reports and edit manager-owned plan items",
+    "- Buddies can only access buddy-owned tasks",
+    "- HR Admin can manage all onboarding plans",
+    "- Full access accounts can manage everything",
+    "",
+    "Deployment and technical notes:",
+    `- Repository/service: ${deploymentInfo.service}`,
+    `- Active branch: ${deploymentInfo.branch}`,
+    `- Active commit: ${deploymentInfo.commit}`,
+    "- Runtime: static HTML/CSS/JS frontend served by a lightweight Node server",
+    "- Target deployer: Render.com",
+    "- Authentication model in this prototype: local account picker plus password check",
+    "- Default profile image falls back to the Wikimedia default profile picture when no custom upload exists",
+    "",
+    currentPlan
+      ? "Signed-in user's linked plan:"
+      : "Signed-in user's linked plan:",
+    currentPlan
+      ? `- ${currentPlan.employeeName} | status: ${currentPlan.status} | stage: ${currentPlan.stage} | progress: ${currentPlan.progress}% | manager: ${currentPlan.manager} | buddy: ${currentPlan.buddy} | next action: ${currentPlan.nextAction}`
+      : "- No direct onboarding plan is mapped to this account in the current sample dataset",
+    "",
+    "Requested review instruction for Claude:",
+    "Use the information above as the full available project context. Do not assume repo access. Summarize the platform, identify product and UX gaps, identify operational risks, and suggest the next best improvements."
+  ];
+
+  return lines.join("\n");
+}
+
 function buildClaudePanel(session) {
-  const prompt = [
-    "You are assisting with the Lumofy Onboarding Control Centre.",
-    `Current user: ${session.displayName}.`,
-    `Role: ${session.role || "Lumofy User"}.`,
-    `Access level: ${String(session.accessLevel || "employee_access").replaceAll("_", " ")}.`,
-    `Permissions: ${(session.permissions || []).join(", ")}.`,
-    "Platform areas: HR dashboard, employees, company tree, onboarding plans, engagement, account permissions, and reports.",
-    "Give a concise platform summary, key risks, and the next best improvements."
-  ].join(" ");
+  const prompt = buildClaudeContext(session);
 
   return `
     <div class="sidebar-utility-card">
       <p class="eyebrow">Claude</p>
-      <p class="utility-copy">Quick access for external review or product context handoff.</p>
+      <p class="utility-copy">Full copy/paste context for external review when the other tool cannot access local files or project data.</p>
+      <textarea class="utility-prompt" readonly>${escapeHtml(prompt)}</textarea>
       <div class="utility-actions">
         <a class="primary-button utility-button" href="https://claude.ai/new" target="_blank" rel="noopener noreferrer">Claude</a>
         <button
@@ -560,7 +681,7 @@ function buildClaudePanel(session) {
           data-copy-prompt
           data-prompt="${escapeHtml(prompt)}"
         >
-          Copy Lumofy Prompt
+          Copy Full Context
         </button>
       </div>
     </div>
