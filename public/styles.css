@@ -854,6 +854,15 @@ tbody tr:hover {
   gap: 10px;
 }
 
+.game-selection-card {
+  gap: 8px;
+}
+
+.game-selection-rank {
+  background: #202123;
+  color: #ffffff;
+}
+
 #leaderboard-list .leaderboard-card:nth-child(1) .leaderboard-rank,
 #login-leaderboard-list .leaderboard-card:nth-child(1) .leaderboard-rank {
   background: linear-gradient(135deg, #f6d365, #d4af37);

@@ -380,6 +380,58 @@ function buildEngagementSpotlight(session) {
   `;
 }
 
+function buildGameSelectionSection() {
+  const games = sampleData.engagement?.games || [];
+  const leaderboard = sampleData.engagement?.leaderboard || [];
+  const byGame = new Map();
+
+  leaderboard.forEach((entry) => {
+    const current = byGame.get(entry.game);
+    if (!current || Number(entry.elo || 0) > Number(current.elo || 0)) {
+      byGame.set(entry.game, entry);
+    }
+  });
+
+  const rankedGames = games
+    .map((game) => ({
+      ...game,
+      champion: byGame.get(game.name) || null,
+      score: byGame.get(game.name) ? Number(byGame.get(game.name).elo || 0) : 0
+    }))
+    .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
+
+  return `
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">Game Selection</p>
+          <h3>Best games by strongest current players</h3>
+          <p class="section-copy">Higher ELO ranks a game higher. The top player attached to each game drives its position.</p>
+        </div>
+      </div>
+      <div class="stack">
+        ${rankedGames
+          .map(
+            (game, index) => `
+              <article class="manager-card game-selection-card">
+                <div class="pill-row">
+                  <span class="leaderboard-rank game-selection-rank">${index + 1}</span>
+                  <span class="pill">${escapeHtml(game.name)}</span>
+                  <span class="status-pill status-in_progress">${game.champion ? `ELO ${game.champion.elo}` : "Open"}</span>
+                </div>
+                <strong>${escapeHtml(game.name)}</strong>
+                <p>${escapeHtml(game.description)}</p>
+                <p class="muted">${escapeHtml(game.format)}</p>
+                <p class="muted">${game.champion ? `Top player: ${escapeHtml(game.champion.name)}` : "No ranked player yet"}</p>
+              </article>
+            `
+          )
+          .join("")}
+      </div>
+    </section>
+  `;
+}
+
 function buildLoginUserOptions(accounts, selectedAccountId) {
   return accounts
     .map((account) => {
@@ -456,7 +508,8 @@ function serveAppPage(filePath, res, req, requestUrl) {
     injected = injected
       .replace("__TOPBAR_ACCOUNT__", buildTopbarAccount(session))
       .replace("__ACCOUNT_PANEL__", buildAccountPanel(session, requestUrl.searchParams, requestUrl.pathname))
-      .replace("__ENGAGEMENT_SPOTLIGHT__", requestUrl.pathname === "/engagement.html" ? buildEngagementSpotlight(session) : "");
+      .replace("__ENGAGEMENT_SPOTLIGHT__", requestUrl.pathname === "/engagement.html" ? buildEngagementSpotlight(session) : "")
+      .replace("__GAME_SELECTION__", requestUrl.pathname === "/engagement.html" ? buildGameSelectionSection() : "");
 
     res.writeHead(200, {
       "Content-Type": "text/html; charset=utf-8",
