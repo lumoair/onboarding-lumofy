@@ -41,6 +41,7 @@
           </ul>
           __ACCOUNT_PANEL__
         </div>
+        __CLAUDE_PANEL__
       </aside>
 
       <main class="content" id="main">
@@ -127,5 +128,26 @@
 
     __ONBOARDING_DATA_SCRIPT__
     <script src="/app.js?v=20260720g"></script>
+    <script>
+      (function () {
+        document.addEventListener("click", async function (event) {
+          const button = event.target.closest("[data-copy-prompt]");
+          if (!button) return;
+          const prompt = button.getAttribute("data-prompt") || "";
+          try {
+            await navigator.clipboard.writeText(prompt);
+            button.textContent = "Prompt Copied";
+            setTimeout(() => {
+              button.textContent = "Copy Lumofy Prompt";
+            }, 1800);
+          } catch (error) {
+            button.textContent = "Copy Failed";
+            setTimeout(() => {
+              button.textContent = "Copy Lumofy Prompt";
+            }, 1800);
+          }
+        });
+      })();
+    </script>
   </body>
 </html>

@@ -537,6 +537,36 @@ function buildTopbarAccount(session) {
   `;
 }
 
+function buildClaudePanel(session) {
+  const prompt = [
+    "You are assisting with the Lumofy Onboarding Control Centre.",
+    `Current user: ${session.displayName}.`,
+    `Role: ${session.role || "Lumofy User"}.`,
+    `Access level: ${String(session.accessLevel || "employee_access").replaceAll("_", " ")}.`,
+    `Permissions: ${(session.permissions || []).join(", ")}.`,
+    "Platform areas: HR dashboard, employees, company tree, onboarding plans, engagement, account permissions, and reports.",
+    "Give a concise platform summary, key risks, and the next best improvements."
+  ].join(" ");
+
+  return `
+    <div class="sidebar-utility-card">
+      <p class="eyebrow">Claude</p>
+      <p class="utility-copy">Quick access for external review or product context handoff.</p>
+      <div class="utility-actions">
+        <a class="primary-button utility-button" href="https://claude.ai/new" target="_blank" rel="noopener noreferrer">Claude</a>
+        <button
+          class="ghost-button utility-button"
+          type="button"
+          data-copy-prompt
+          data-prompt="${escapeHtml(prompt)}"
+        >
+          Copy Lumofy Prompt
+        </button>
+      </div>
+    </div>
+  `;
+}
+
 function buildEngagementSpotlight(session) {
   const accounts = readAccounts();
   const account = accounts.find((entry) => entry.id === session.accountId);
@@ -708,6 +738,7 @@ function serveAppPage(filePath, res, req, requestUrl) {
     injected = injected
       .replace("__TOPBAR_ACCOUNT__", buildTopbarAccount(session))
       .replace("__ACCOUNT_PANEL__", buildAccountPanel(session, requestUrl.searchParams, requestUrl.pathname))
+      .replace("__CLAUDE_PANEL__", buildClaudePanel(session))
       .replace("__ENGAGEMENT_SPOTLIGHT__", requestUrl.pathname === "/engagement.html" ? buildEngagementSpotlight(session) : "")
       .replace("__GAME_SELECTION__", requestUrl.pathname === "/engagement.html" ? buildGameSelectionSection() : "");
 

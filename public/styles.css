@@ -206,6 +206,29 @@ p {
   overflow: auto;
 }
 
+.sidebar-utility-card {
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: grid;
+  gap: 8px;
+}
+
+.utility-copy {
+  color: rgba(236, 236, 241, 0.74);
+  font-size: 0.78rem;
+}
+
+.utility-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.utility-button {
+  width: 100%;
+}
+
 .account-panel {
   margin-top: 10px;
   display: grid;
